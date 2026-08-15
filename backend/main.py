@@ -1,5 +1,9 @@
+# pyrefly: ignore [missing-import]
 from fastapi import FastAPI, UploadFile, File, HTTPException
+# pyrefly: ignore [missing-import]
 from pydantic import BaseModel
+from reasoning_engine import diagnose_incident
+from database import get_rule_by_id, get_incident_by_id
 import json
 
 from database import init_db, save_rules, get_all_rules, save_incident, get_all_incidents
@@ -58,3 +62,18 @@ def simulate(data_point: DataPoint):
 @app.get("/incidents")
 def list_incidents():
     return get_all_incidents()
+
+@app.post("/diagnose/{incident_id}")
+def diagnose(incident_id: str):
+    """Runs the Reasoning Engine on an already-matched incident."""
+    incident = get_incident_by_id(incident_id)
+    if incident is None:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    rule = get_rule_by_id(incident["rule_id"])
+    if rule is None:
+        raise HTTPException(status_code=404, detail="Matching rule not found")
+
+    diagnosed = diagnose_incident(incident, rule)
+    save_incident(diagnosed)  # overwrite with the now-diagnosed version
+    return diagnosed

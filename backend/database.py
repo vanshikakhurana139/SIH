@@ -72,3 +72,20 @@ def get_all_incidents() -> list[dict]:
     rows = cur.fetchall()
     conn.close()
     return [json.loads(row["data"]) for row in rows]
+
+def get_rule_by_id(rule_id: str) -> dict | None:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT data FROM rules WHERE rule_id = ?", (rule_id,))
+    row = cur.fetchone()
+    conn.close()
+    return json.loads(row["data"]) if row else None
+
+
+def get_incident_by_id(incident_id: str) -> dict | None:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT data FROM incidents WHERE id = ?", (incident_id,))
+    row = cur.fetchone()
+    conn.close()
+    return json.loads(row["data"]) if row else None
