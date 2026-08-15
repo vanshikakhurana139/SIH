@@ -57,7 +57,7 @@ export default function ActiveIncidentCard({ incident, onApprove, onReject, onMo
         <CrystalBall crystalBall={incident.crystal_ball} />
       </div>
 
-      {status === "pending_approval" && !showModify && (
+      {(status === "diagnosed" || status === "pending_approval") && !showModify && (
         <div className="flex items-center gap-2 px-5 py-4 border-t border-border-subtle bg-surface-raised/40">
           <button
             onClick={handleApprove}
@@ -106,7 +106,7 @@ export default function ActiveIncidentCard({ incident, onApprove, onReject, onMo
         </div>
       )}
 
-      {status !== "pending_approval" && !showModify && (
+      {status !== "diagnosed" && status !== "pending_approval" && !showModify && (
         <div className="px-5 py-3 border-t border-border-subtle bg-surface-raised/40">
           <p className="text-[12px] font-mono text-fg-muted">
             Decision recorded — <span className="text-fg">{status}</span>

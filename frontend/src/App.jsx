@@ -72,23 +72,30 @@ function App() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notice, setNotice] = useState(null);
+  const [loadError, setLoadError] = useState(null);
 
   async function refreshAll() {
-    const [inc, list, trust, health, statsData] = await Promise.all([
-      getActiveIncident(),
-      getIncidents(),
-      getTrustScores(),
-      getHealthCheck(),
-      getStats(),
-    ]);
-    setActiveIncident(inc);
-    setIncidents(list);
-    setTrustScores(trust);
-    setHealthCheck(health);
-    setStats(statsData);
-    setLoading(false);
+    try {
+      const [inc, list, trust, health, statsData] = await Promise.all([
+        getActiveIncident(),
+        getIncidents(),
+        getTrustScores(),
+        getHealthCheck(),
+        getStats(),
+      ]);
+      setActiveIncident(inc);
+      setIncidents(list);
+      setTrustScores(trust);
+      setHealthCheck(health);
+      setStats(statsData);
+      setLoadError(null);
+    } catch (err) {
+      console.error("Dashboard load failed:", err);
+      setLoadError("Could not reach the backend. Is uvicorn running on port 8000?");
+    } finally {
+      setLoading(false);
+    }
   }
-
   useEffect(() => {
     refreshAll();
   }, []);
@@ -131,6 +138,16 @@ function App() {
           {notice && (
             <div className="mb-4 px-4 py-2 rounded-md bg-surface-raised border border-border-subtle text-[13px] text-fg-muted">
               {notice}
+            </div>
+          )}
+          {notice && (
+            <div className="mb-4 px-4 py-2 rounded-md bg-surface-raised border border-border-subtle text-[13px] text-fg-muted">
+              {notice}
+            </div>
+          )}
+          {loadError && (
+            <div className="mb-4 px-4 py-2 rounded-md bg-severity-critical/10 border border-severity-critical/30 text-[13px] text-severity-critical">
+              {loadError}
             </div>
           )}
           {loading ? (
