@@ -4,7 +4,7 @@ const BASE_URL = "http://127.0.0.1:8000";
 
 // Trust Score / Health Check / Stats endpoints don't exist until Phase 5 —
 // stay mocked here on purpose so Phase 4 doesn't block waiting on them.
-const MOCK_PHASE5 = true;
+const MOCK_PHASE5 = false;
 
 export async function simulateIncident(sensor, value) {
   const res = await fetch(`${BASE_URL}/simulate`, {
@@ -46,8 +46,8 @@ async function postAction(incidentId, action, body) {
   return res.json();
 }
 
-export async function approveAction(incidentId, confirmed = false) {
-  return postAction(incidentId, "approve", { confirmed });
+export async function approveAction(incidentId, confirmed = false, forceOutcome = null) {
+  return postAction(incidentId, "approve", { confirmed, force_outcome: forceOutcome });
 }
 
 export async function rejectAction(incidentId) {
@@ -78,5 +78,14 @@ export async function getHealthCheck() {
 export async function getStats() {
   if (MOCK_PHASE5) return Promise.resolve(mockStats);
   const res = await fetch(`${BASE_URL}/stats`);
+  return res.json();
+}
+
+export async function undoAction(incidentId) {
+  const res = await fetch(`${BASE_URL}/actions/${incidentId}/undo`, { method: "POST" });
+  if (!res.ok) {
+    const err = await res.json();
+    throw { status: res.status, detail: err.detail };
+  }
   return res.json();
 }

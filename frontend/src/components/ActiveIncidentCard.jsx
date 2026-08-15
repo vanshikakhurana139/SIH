@@ -1,15 +1,19 @@
-﻿import { useState } from "react";
+import { useState, useEffect } from "react";
 import EvidencePanel from "./EvidencePanel";
 import CrystalBall from "./CrystalBall";
 import { StatusLight } from "./StatusLight";
 import { IconArrow } from "../icons";
 
-export default function ActiveIncidentCard({ incident, onApprove, onReject, onModify }) {
+export default function ActiveIncidentCard({ incident, onApprove, onReject, onModify, onUndo }) {
   const [status, setStatus] = useState(incident?.status || "pending_approval");
   const [showModify, setShowModify] = useState(false);
   const [modifiedAction, setModifiedAction] = useState(incident?.recommended_action || "");
   const [confirmedOnce, setConfirmedOnce] = useState(false);
 
+  useEffect(() => {
+    setStatus(incident?.status || "pending_approval");
+    setConfirmedOnce(false);
+  }, [incident?.id, incident?.status]);
   if (!incident) {
     return (
       <div className="bg-surface border border-border-subtle rounded-md p-6">
@@ -111,6 +115,24 @@ export default function ActiveIncidentCard({ incident, onApprove, onReject, onMo
           <p className="text-[12px] font-mono text-fg-muted">
             Decision recorded — <span className="text-fg">{status}</span>
           </p>
+        </div>
+      )}
+      {status !== "diagnosed" && status !== "pending_approval" && !showModify && (
+        <div className="px-5 py-3 border-t border-border-subtle bg-surface-raised/40">
+          <p className="text-[12px] font-mono text-fg-muted">
+            Decision recorded — <span className="text-fg">{status}</span>
+          </p>
+        </div>
+      )}
+
+      {(status === "resolved" || status === "failed") && incident.reversible && (
+        <div className="px-5 py-3 border-t border-border-subtle bg-surface-raised/40">
+          <button
+            onClick={() => onUndo(incident.id)}
+            className="text-[12px] font-medium text-fg-muted border border-border hover:border-severity-critical hover:text-severity-critical px-3 py-1.5 rounded-md transition-colors"
+          >
+            Undo Action
+          </button>
         </div>
       )}
     </div>

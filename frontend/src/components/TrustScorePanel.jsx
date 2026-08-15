@@ -1,6 +1,6 @@
 ﻿import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-export default function TrustScorePanel({ trustScores }) {
+export default function TrustScorePanel({ trustScores, onEnableAutopilot }) {
   if (!trustScores) return null;
 
   const chartData = trustScores.map((t) => ({
@@ -60,7 +60,10 @@ export default function TrustScorePanel({ trustScores }) {
                 </span>{" "}
                 has earned auto-pilot
               </span>
-              <button className="text-[11px] font-medium uppercase tracking-[0.05em] text-positive border border-positive/40 hover:bg-positive/10 px-2.5 py-1 rounded transition-colors">
+              <button
+                onClick={() => onEnableAutopilot(t.rule_id)}
+                className="text-[11px] font-medium uppercase tracking-[0.05em] text-positive border border-positive/40 hover:bg-positive/10 px-2.5 py-1 rounded transition-colors"
+              >
                 Enable
               </button>
             </div>

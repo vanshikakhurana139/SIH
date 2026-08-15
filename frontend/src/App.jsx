@@ -16,6 +16,8 @@ import {
   approveAction,
   rejectAction,
   modifyAction,
+  undoAction,
+  enableAutopilot,
 } from "./api/api";
 
 // Same 3 synthetic points used in the Phase 1 checklist
@@ -128,18 +130,28 @@ function App() {
     setActiveIncident(updated);
     refreshAll();
   }
+  async function handleModify(incidentId, text) {
+    const updated = await modifyAction(incidentId, text);
+    setActiveIncident(updated);
+    refreshAll();
+  }
 
+  async function handleUndo(incidentId) {
+    const updated = await undoAction(incidentId);
+    setActiveIncident(updated);
+    refreshAll();
+  }
+
+  async function handleEnableAutopilot(ruleId) {
+    await enableAutopilot(ruleId);
+    refreshAll();
+  }
   return (
     <div className="flex min-h-screen bg-ink">
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <TopBar onSimulate={handleSimulate} />
         <main className="flex-1 p-6 overflow-y-auto">
-          {notice && (
-            <div className="mb-4 px-4 py-2 rounded-md bg-surface-raised border border-border-subtle text-[13px] text-fg-muted">
-              {notice}
-            </div>
-          )}
           {notice && (
             <div className="mb-4 px-4 py-2 rounded-md bg-surface-raised border border-border-subtle text-[13px] text-fg-muted">
               {notice}
@@ -166,11 +178,12 @@ function App() {
                     onApprove={handleApprove}
                     onReject={handleReject}
                     onModify={handleModify}
+                    onUndo={handleUndo}
                   />
                   <RecentIncidentsTable incidents={incidents} />
                 </div>
                 <div className="space-y-6">
-                  <TrustScorePanel trustScores={trustScores} />
+                  <TrustScorePanel trustScores={trustScores} onEnableAutopilot={handleEnableAutopilot} />
                   <HealthCheckPanel healthCheck={healthCheck} />
                 </div>
               </div>
