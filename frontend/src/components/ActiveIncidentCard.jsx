@@ -117,13 +117,6 @@ export default function ActiveIncidentCard({ incident, onApprove, onReject, onMo
           </p>
         </div>
       )}
-      {status !== "diagnosed" && status !== "pending_approval" && !showModify && (
-        <div className="px-5 py-3 border-t border-border-subtle bg-surface-raised/40">
-          <p className="text-[12px] font-mono text-fg-muted">
-            Decision recorded — <span className="text-fg">{status}</span>
-          </p>
-        </div>
-      )}
 
       {(status === "resolved" || status === "failed") && incident.reversible && (
         <div className="px-5 py-3 border-t border-border-subtle bg-surface-raised/40">

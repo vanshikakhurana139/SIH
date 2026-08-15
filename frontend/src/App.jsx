@@ -130,11 +130,6 @@ function App() {
     setActiveIncident(updated);
     refreshAll();
   }
-  async function handleModify(incidentId, text) {
-    const updated = await modifyAction(incidentId, text);
-    setActiveIncident(updated);
-    refreshAll();
-  }
 
   async function handleUndo(incidentId) {
     const updated = await undoAction(incidentId);
