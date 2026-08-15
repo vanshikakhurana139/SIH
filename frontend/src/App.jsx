@@ -1,122 +1,110 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+﻿import { useState, useEffect } from "react";
+import Sidebar from "./components/Sidebar";
+import StatCards from "./components/StatCards";
+import ArchitectureStrip from "./components/ArchitectureStrip";
+import ActiveIncidentCard from "./components/ActiveIncidentCard";
+import RecentIncidentsTable from "./components/RecentIncidentsTable";
+import TrustScorePanel from "./components/TrustScorePanel";
+import HealthCheckPanel from "./components/HealthCheckPanel";
+import {
+  getActiveIncident,
+  getIncidents,
+  getTrustScores,
+  getHealthCheck,
+  getStats,
+} from "./api/api";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+function useClock() {
+  const [time, setTime] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return time;
 }
 
-export default App
+function TopBar() {
+  const time = useClock();
+  return (
+    <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle">
+      <div>
+        <p className="text-[11px] uppercase tracking-[0.1em] text-fg-subtle">Operations</p>
+        <h1 className="text-[17px] font-medium text-fg mt-0.5">Power Plant — Turbine Bay 3</h1>
+      </div>
+      <div className="flex items-center gap-4">
+        <span className="inline-flex items-center gap-1.5 text-[12px] text-fg-muted">
+          <span
+            className="w-1.5 h-1.5 rounded-full bg-positive"
+            style={{ boxShadow: "0 0 6px var(--color-positive)" }}
+          />
+          Live
+        </span>
+        <span className="font-mono text-[12px] text-fg-subtle tabular-nums">
+          {time.toLocaleTimeString([], { hour12: false })}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [activeIncident, setActiveIncident] = useState(null);
+  const [incidents, setIncidents] = useState([]);
+  const [trustScores, setTrustScores] = useState([]);
+  const [healthCheck, setHealthCheck] = useState(null);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadDashboard() {
+      const [inc, list, trust, health, statsData] = await Promise.all([
+        getActiveIncident(),
+        getIncidents(),
+        getTrustScores(),
+        getHealthCheck(),
+        getStats(),
+      ]);
+      setActiveIncident(inc);
+      setIncidents(list);
+      setTrustScores(trust);
+      setHealthCheck(health);
+      setStats(statsData);
+      setLoading(false);
+    }
+    loadDashboard();
+  }, []);
+
+  return (
+    <div className="flex min-h-screen bg-ink">
+      <Sidebar />
+      <div className="flex-1 flex flex-col min-w-0">
+        <TopBar />
+        <main className="flex-1 p-6 overflow-y-auto">
+          {loading ? (
+            <div className="flex items-center gap-2 text-[13px] text-fg-subtle font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
+              Loading dashboard…
+            </div>
+          ) : (
+            <>
+              <StatCards stats={stats} />
+              <ArchitectureStrip />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  <ActiveIncidentCard incident={activeIncident} />
+                  <RecentIncidentsTable incidents={incidents} />
+                </div>
+                <div className="space-y-6">
+                  <TrustScorePanel trustScores={trustScores} />
+                  <HealthCheckPanel healthCheck={healthCheck} />
+                </div>
+              </div>
+            </>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+export default App;

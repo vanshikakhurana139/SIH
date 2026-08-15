@@ -1,1 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
+
+/*
+  SENTINEL design tokens.
+  Modeled on control-room / instrumentation software rather than
+  consumer SaaS: a graphite base (not pure black), one restrained
+  interactive accent, and a dedicated 5-color severity system that
+  carries meaning everywhere else in the UI stays quiet.
+*/
+@theme {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  --color-ink: #0a0d12;
+  --color-surface: #12161d;
+  --color-surface-raised: #171c25;
+  --color-border: #262d3d;
+  --color-border-subtle: #1a2029;
+
+  --color-fg: #e8eaf0;
+  --color-fg-muted: #8d96ab;
+  --color-fg-subtle: #565e73;
+
+  --color-accent: #5e7ce2;
+
+  --color-severity-low: #6b8cae;
+  --color-severity-medium: #d9a441;
+  --color-severity-high: #db7f3b;
+  --color-severity-critical: #d64545;
+  --color-positive: #3fae7c;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
