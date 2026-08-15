@@ -4,7 +4,7 @@ import CrystalBall from "./CrystalBall";
 import { StatusLight } from "./StatusLight";
 import { IconArrow } from "../icons";
 
-export default function ActiveIncidentCard({ incident }) {
+export default function ActiveIncidentCard({ incident, onApprove, onReject, onModify }) {
   const [status, setStatus] = useState(incident?.status || "pending_approval");
   const [showModify, setShowModify] = useState(false);
   const [modifiedAction, setModifiedAction] = useState(incident?.recommended_action || "");
@@ -27,15 +27,18 @@ export default function ActiveIncidentCard({ incident }) {
       return;
     }
     setStatus("approved");
+    onApprove(incident.id, needsExtraConfirm ? true : false);
   }
 
   function handleReject() {
     setStatus("rejected");
+    onReject(incident.id);
   }
 
   function handleModifySubmit() {
     setStatus("modified");
     setShowModify(false);
+    onModify(incident.id, modifiedAction);
   }
 
   return (

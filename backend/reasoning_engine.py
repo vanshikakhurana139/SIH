@@ -12,7 +12,7 @@ Confidence formula (documented here for the patent notes):
       flat default of 0.5 (=> +10 points), so nothing breaks early.
     - Final score is capped at 99 — we never claim 100% certainty.
 """
-
+from templates import build_crystal_ball
 BASE_CONFIDENCE = 50
 MAX_OVERAGE_POINTS = 30
 MAX_TRUST_POINTS = 20
@@ -56,5 +56,5 @@ def diagnose_incident(incident: dict, rule: dict, trust_score: float | None = No
     updated["rollback_plan"] = rule["rollback_steps"]
     updated["reversible"] = rule["reversible"]
     updated["status"] = "diagnosed"
-
+    updated["crystal_ball"] = build_crystal_ball(updated)
     return updated

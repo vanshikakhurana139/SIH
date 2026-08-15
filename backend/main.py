@@ -4,12 +4,20 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from pydantic import BaseModel
 from reasoning_engine import diagnose_incident
 from database import get_rule_by_id, get_incident_by_id
+# pyrefly: ignore [missing-import]
+from fastapi.middleware.cors import CORSMiddleware
 import json
 
 from database import init_db, save_rules, get_all_rules, save_incident, get_all_incidents
 from rule_engine import match_data_point
 
 app = FastAPI(title="SENTINEL Backend")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  # your Vite dev server
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Create the DB tables on startup if they don't exist yet
 init_db()
@@ -77,3 +85,56 @@ def diagnose(incident_id: str):
     diagnosed = diagnose_incident(incident, rule)
     save_incident(diagnosed)  # overwrite with the now-diagnosed version
     return diagnosed
+
+class ModifyRequest(BaseModel):
+    recommended_action: str
+
+
+
+class ApprovalRequest(BaseModel):
+    approved_by: str = "demo_admin"
+    confirmed: bool = False
+
+
+@app.post("/actions/{incident_id}/approve")
+def approve_action(incident_id: str, body: ApprovalRequest = ApprovalRequest()):
+    incident = get_incident_by_id(incident_id)
+    if incident is None:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    # Severity-Based Approval Routing
+    requires_extra = incident["severity"] in ("high", "critical") or not incident["reversible"]
+    if requires_extra and not body.confirmed:
+        raise HTTPException(
+            status_code=428,
+            detail="High-severity/irreversible action requires a second confirmation.",
+        )
+
+    incident["status"] = "approved"
+    incident["approved_by"] = body.approved_by
+    save_incident(incident)
+    return incident
+
+
+@app.post("/actions/{incident_id}/reject")
+def reject_action(incident_id: str, body: ApprovalRequest = ApprovalRequest()):
+    incident = get_incident_by_id(incident_id)
+    if incident is None:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    incident["status"] = "rejected"
+    incident["approved_by"] = body.approved_by
+    save_incident(incident)
+    return incident
+
+
+@app.post("/actions/{incident_id}/modify")
+def modify_action(incident_id: str, body: ModifyRequest):
+    incident = get_incident_by_id(incident_id)
+    if incident is None:
+        raise HTTPException(status_code=404, detail="Incident not found")
+
+    incident["recommended_action"] = body.recommended_action
+    incident["status"] = "approved"
+    save_incident(incident)
+    return incident

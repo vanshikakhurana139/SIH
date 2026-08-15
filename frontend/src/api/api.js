@@ -1,63 +1,82 @@
-﻿// api.js
-import {
-  mockIncident,
-  mockRecentIncidents,
-  mockTrustScores,
-  mockHealthCheck,
-  mockStats,
-} from "../data/mockData";
+﻿import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
 
-const FAKE_DELAY = 300;
+const BASE_URL = "http://127.0.0.1:8000";
 
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+// Trust Score / Health Check / Stats endpoints don't exist until Phase 5 —
+// stay mocked here on purpose so Phase 4 doesn't block waiting on them.
+const MOCK_PHASE5 = true;
+
+export async function simulateIncident(sensor, value) {
+  const res = await fetch(`${BASE_URL}/simulate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sensor, value }),
+  });
+  const data = await res.json();
+  if (!data.matched) throw { status: 204, detail: "No rule matched this reading" };
+
+  const diagRes = await fetch(`${BASE_URL}/diagnose/${data.incident.id}`, { method: "POST" });
+  return diagRes.json();
 }
 
 export async function getActiveIncident() {
-  await delay(FAKE_DELAY);
-  return mockIncident;
+  const res = await fetch(`${BASE_URL}/incidents`);
+  const all = await res.json();
+  // Most recently triggered incident that's still awaiting a decision
+  const pending = all.filter((i) => i.status === "diagnosed");
+  if (pending.length === 0) return null;
+  return pending.sort((a, b) => new Date(b.triggered_at) - new Date(a.triggered_at))[0];
 }
 
 export async function getIncidents() {
-  await delay(FAKE_DELAY);
-  return mockRecentIncidents;
+  const res = await fetch(`${BASE_URL}/incidents`);
+  return res.json();
 }
 
-export async function getTrustScores() {
-  await delay(FAKE_DELAY);
-  return mockTrustScores;
+async function postAction(incidentId, action, body) {
+  const res = await fetch(`${BASE_URL}/actions/${incidentId}/${action}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw { status: res.status, detail: err.detail };
+  }
+  return res.json();
 }
 
-export async function getHealthCheck() {
-  await delay(FAKE_DELAY);
-  return mockHealthCheck;
-}
-
-export async function getStats() {
-  await delay(FAKE_DELAY);
-  return mockStats;
-}
-
-export async function simulateIncident(sensorData) {
-  await delay(FAKE_DELAY);
-  console.log("Mock simulateIncident called with:", sensorData);
-  return { matched: true, incident: mockIncident };
-}
-
-export async function approveAction(incidentId) {
-  await delay(FAKE_DELAY);
-  console.log("Mock approveAction called for:", incidentId);
-  return { ...mockIncident, status: "approved" };
+export async function approveAction(incidentId, confirmed = false) {
+  return postAction(incidentId, "approve", { confirmed });
 }
 
 export async function rejectAction(incidentId) {
-  await delay(FAKE_DELAY);
-  console.log("Mock rejectAction called for:", incidentId);
-  return { ...mockIncident, status: "rejected" };
+  return postAction(incidentId, "reject", {});
 }
 
 export async function modifyAction(incidentId, newAction) {
-  await delay(FAKE_DELAY);
-  console.log("Mock modifyAction called for:", incidentId, newAction);
-  return { ...mockIncident, recommended_action: newAction, status: "modified" };
+  const res = await fetch(`${BASE_URL}/actions/${incidentId}/modify`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ recommended_action: newAction }),
+  });
+  return res.json();
+}
+
+export async function getTrustScores() {
+  if (MOCK_PHASE5) return Promise.resolve(mockTrustScores);
+  const res = await fetch(`${BASE_URL}/trust-scores`);
+  return res.json();
+}
+
+export async function getHealthCheck() {
+  if (MOCK_PHASE5) return Promise.resolve(mockHealthCheck);
+  const res = await fetch(`${BASE_URL}/health-check-summary`);
+  return res.json();
+}
+
+export async function getStats() {
+  if (MOCK_PHASE5) return Promise.resolve(mockStats);
+  const res = await fetch(`${BASE_URL}/stats`);
+  return res.json();
 }
