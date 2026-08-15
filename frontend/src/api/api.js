@@ -89,3 +89,8 @@ export async function undoAction(incidentId) {
   }
   return res.json();
 }
+
+export async function enableAutopilot(ruleId) {
+  const res = await fetch(`${BASE_URL}/trust-scores/${ruleId}/enable-autopilot`, { method: "POST" });
+  return res.json();
+}
