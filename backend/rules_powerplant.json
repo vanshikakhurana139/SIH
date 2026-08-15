@@ -1,0 +1,49 @@
+[
+    {
+        "rule_id": "PP-001",
+        "sensor": "turbine_temp",
+        "operator": ">",
+        "threshold": 95.0,
+        "severity": "high",
+        "suggested_actions": [
+            "Reduce turbine load to 60%",
+            "Increase coolant flow rate to secondary loop",
+            "Notify shift engineer"
+        ],
+        "rollback_steps": [
+            "Restore turbine load to previous setpoint",
+            "Return coolant flow rate to normal baseline"
+        ],
+        "reversible": true
+    },
+    {
+        "rule_id": "PP-002",
+        "sensor": "generator_vibration",
+        "operator": ">",
+        "threshold": 7.5,
+        "severity": "critical",
+        "suggested_actions": [
+            "Emergency shutdown of generator unit",
+            "Lock out generator for physical inspection"
+        ],
+        "rollback_steps": [
+            "Cannot be rolled back automatically — requires manual inspection sign-off"
+        ],
+        "reversible": false
+    },
+    {
+        "rule_id": "PP-003",
+        "sensor": "coolant_pressure",
+        "operator": "<",
+        "threshold": 30.0,
+        "severity": "medium",
+        "suggested_actions": [
+            "Activate backup coolant pump",
+            "Check for leaks in primary coolant line"
+        ],
+        "rollback_steps": [
+            "Deactivate backup coolant pump once primary is restored"
+        ],
+        "reversible": true
+    }
+]
