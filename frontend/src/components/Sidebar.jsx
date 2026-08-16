@@ -1,4 +1,5 @@
 import { IconGrid, IconLog, IconSettings, IconUsers, IconSliders, IconAlertTriangle, IconBolt } from "../icons";
+import logoImg from "../assets/logo.png";
 
 const NAV = [
   { label: "Overview",     icon: IconGrid,          active: true  },
@@ -15,12 +16,12 @@ export default function Sidebar() {
   return (
     <aside className="sidebar-glow w-[72px] min-h-screen shrink-0 flex flex-col items-center py-4 gap-1 z-20">
       {/* Logo */}
-      <div
-        className="flex items-center justify-center w-11 h-11 rounded-2xl text-white font-display font-extrabold text-[16px] mb-5 shadow-lg"
-        style={{ background: "linear-gradient(135deg, #3B5BDB, #748FFC)", boxShadow: "0 4px 16px rgba(59,91,219,0.40)" }}
-      >
-        S
-      </div>
+      <img
+        src={logoImg}
+        alt="Sentinel Logo"
+        className="w-11 h-11 rounded-2xl shrink-0 shadow-lg object-contain bg-white mb-5"
+        style={{ boxShadow: "0 4px 16px rgba(59,91,219,0.40)" }}
+      />
 
       <nav className="flex flex-col items-center gap-1 flex-1 w-full px-2">
         {NAV.map(({ label, icon: Icon, active }) => (

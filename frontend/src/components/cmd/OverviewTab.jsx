@@ -139,7 +139,7 @@ export default function OverviewTab({
               />
               <RecoveryStatus healthCheck={healthCheck} />
               <TrustScorePanel trustScores={trustScores} />
-              <IncidentImpact incident={activeIncident} />
+              <IncidentImpact incident={activeIncident} scenario={scenario} />
               <SystemGuardrailsLog />
             </div>
           </div>

@@ -5,6 +5,7 @@ the tamper-evident Audit Log so the sequence looks and behaves like a real
 orchestration pipeline for demo purposes.
 """
 import hashlib
+from datetime import datetime, timezone
 from database import append_audit_log, record_outcome
 
 # Same operator map as rule_engine.py, used here to re-check the sensor
@@ -78,6 +79,8 @@ def execute_action(incident: dict, rule: dict, force_outcome: str | None = None)
 
     updated["sensor_value"] = round(simulated_new_value, 2)
     updated["status"] = "resolved" if final_success else "failed"
+    if final_success:
+        updated["resolved_at"] = datetime.now(timezone.utc).isoformat()
 
     append_audit_log(updated["id"], "health_check", {
         "result": "success" if final_success else "failed",

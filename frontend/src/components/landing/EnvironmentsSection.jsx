@@ -1,4 +1,6 @@
-const PLANT_PHOTO = "https://images.unsplash.com/photo-1539185441755-769473a23570?w=900&q=80&fit=crop";
+import plantPhoto from "../../assets/power_plant.jpg";
+
+const PLANT_PHOTO = plantPhoto;
 const HOSPITAL_PHOTO = "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=900&q=80&fit=crop";
 
 function PlantIsometric() {

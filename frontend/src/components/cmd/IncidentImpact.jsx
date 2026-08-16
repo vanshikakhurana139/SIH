@@ -1,9 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { AreaChart, Area, ResponsiveContainer, YAxis } from "recharts";
 
-const SEVERITY_RATE = { low: 5, medium: 20, high: 60, critical: 150 };
-
-export default function IncidentImpact({ incident }) {
+export default function IncidentImpact({ incident, scenario }) {
   const [elapsed, setElapsed] = useState(0);
   const [history, setHistory] = useState([]);
   const [prevId, setPrevId] = useState(incident?.id);
@@ -21,21 +19,23 @@ export default function IncidentImpact({ incident }) {
     if (!isActive) { clearInterval(intervalRef.current); return; }
 
     const start = new Date(incident.triggered_at).getTime();
-    const rate = SEVERITY_RATE[incident.severity] || 10;
+    const isHospital = scenario === "hospital";
 
     intervalRef.current = setInterval(() => {
       const secs = Math.floor((Date.now() - start) / 1000);
       setElapsed(secs);
-      setHistory((h) => [...h, { t: secs, cost: secs * rate }].slice(-24));
+      const currentCost = isHospital ? Math.floor(secs / 10) : Math.floor(secs / 5) * 10;
+      setHistory((h) => [...h, { t: secs, cost: currentCost }].slice(-24));
     }, 1000);
 
     return () => clearInterval(intervalRef.current);
-  }, [incident]);
+  }, [incident, scenario]);
 
   if (!incident) return null;
 
-  const rate = SEVERITY_RATE[incident.severity] || 10;
-  const cost = elapsed * rate;
+  const isHospital = scenario === "hospital";
+  const cost = isHospital ? Math.floor(elapsed / 10) : Math.floor(elapsed / 5) * 10;
+  const rateLabel = isHospital ? "$1/10s burn" : "$10/5s burn";
   const isActive = incident.status === "diagnosed" || incident.status === "pending_approval";
   const chartData = history.length ? history : [{ t: 0, cost: 0 }];
 
@@ -78,7 +78,7 @@ export default function IncidentImpact({ incident }) {
 
       <div className="flex items-center justify-between mt-3 text-xs font-bold border-t border-slate-100 pt-3">
         <span className="text-slate-500">{isActive ? `${elapsed}s elapsed` : "Incident resolved"}</span>
-        <span className="font-mono text-rose-700">+${rate}/sec burn</span>
+        <span className="font-mono text-rose-700">+{rateLabel}</span>
       </div>
     </div>
   );

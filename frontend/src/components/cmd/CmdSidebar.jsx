@@ -1,4 +1,5 @@
 import { useState } from "react";
+import logoImg from "../../assets/logo.png";
 
 function IconOverview({ size = 18 }) {
   return (
@@ -76,20 +77,19 @@ export default function CmdSidebar({ activeTab, onTabChange }) {
       aria-label="Command Center Navigation"
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-6 mb-4 shrink-0">
-        <div
-          className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-lg shrink-0 shadow-md"
-          style={{ background: "linear-gradient(135deg, #B8963E, #D4AF70)", minWidth: "40px" }}
-        >
-          S
-        </div>
-        <div
-          className="whitespace-nowrap overflow-hidden"
-          style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.2s ease 0.05s" }}
-        >
-          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-900 leading-tight">Sentinel</p>
-          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-extrabold">Command Platform</p>
-        </div>
+      <div className={`flex items-center shrink-0 py-6 mb-4 transition-all ${hovered ? "px-4 gap-3" : "justify-center px-0"}`}>
+        <img
+          src={logoImg}
+          alt="Sentinel Logo"
+          className="w-10 h-10 rounded-2xl shrink-0 shadow-md object-contain bg-white"
+          style={{ minWidth: "40px" }}
+        />
+        {hovered && (
+          <div className="whitespace-nowrap overflow-hidden">
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-900 leading-tight">Sentinel</p>
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-extrabold">Command Platform</p>
+          </div>
+        )}
       </div>
 
       {/* Nav items */}
@@ -102,32 +102,34 @@ export default function CmdSidebar({ activeTab, onTabChange }) {
               id={`sidebar-${id}`}
               onClick={() => onTabChange(id)}
               title={label}
-              className={`cmd-sidebar-item relative flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
+              className={`cmd-sidebar-item relative flex items-center rounded-2xl transition-all ${
+                hovered ? "px-4 py-3 gap-3 w-full" : "justify-center w-11 h-11 p-0 mx-auto"
+              } ${
                 active
                   ? "bg-amber-100/90 text-amber-900 font-black shadow-2xs border border-amber-300"
                   : "text-slate-700 hover:bg-slate-100 font-extrabold"
               }`}
             >
               {active && <span className="sidebar-indicator" />}
-              <Icon size={20} />
-              <span
-                className="whitespace-nowrap overflow-hidden text-sm"
-                style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.15s ease" }}
-              >
-                {label}
+              <span className="shrink-0 flex items-center justify-center w-5 h-5">
+                <Icon size={20} />
               </span>
+              {hovered && (
+                <span className="whitespace-nowrap overflow-hidden text-sm">
+                  {label}
+                </span>
+              )}
             </button>
           );
         })}
       </nav>
 
       {/* Version */}
-      <div
-        className="px-4 pb-5 whitespace-nowrap overflow-hidden"
-        style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.2s ease" }}
-      >
-        <p className="text-xs font-black font-mono text-slate-500">v0.4 · Sentinel AI</p>
-      </div>
+      {hovered && (
+        <div className="px-4 pb-5 whitespace-nowrap overflow-hidden">
+          <p className="text-xs font-black font-mono text-slate-500">v0.4 · Sentinel AI</p>
+        </div>
+      )}
     </aside>
   );
 }

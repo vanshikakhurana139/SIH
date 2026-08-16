@@ -277,15 +277,21 @@ def health_check_summary():
 
 @app.get("/stats")
 def stats():
+    from datetime import datetime, timezone
     all_incidents = get_all_incidents()
-    active = sum(1 for i in all_incidents if i["status"] not in ("resolved", "rejected", "undone"))
-    resolved = sum(1 for i in all_incidents if i["status"] == "resolved")
+    today = datetime.now(timezone.utc).date().isoformat()
+    active = sum(1 for i in all_incidents if i["status"] not in ("resolved", "rejected", "undone", "failed"))
+    resolved_today = sum(
+        1 for i in all_incidents
+        if i["status"] == "resolved"
+        and (i.get("resolved_at") or i.get("triggered_at") or "")[:10] == today
+    )
     confidences = [i["confidence"] for i in all_incidents if i.get("confidence")]
     avg_confidence = round(sum(confidences) / len(confidences)) if confidences else 0
     autopilot_types = sum(1 for t in get_all_trust_scores() if t["auto_pilot_enabled"])
     return {
         "activeIncidents": active,
-        "resolvedToday": resolved,
+        "resolvedToday": resolved_today,
         "avgConfidence": avg_confidence,
         "autoPilotEnabled": autopilot_types,
     }

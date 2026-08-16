@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import logoImg from "../../assets/logo.png";
 
 function Clock() {
   const [now, setNow] = useState(new Date());
@@ -19,12 +20,11 @@ export default function CmdHeader({ scenario, onSwitchScenario }) {
       {/* Left */}
       <div className="flex items-center gap-6">
         <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-base shrink-0 shadow-sm"
-            style={{ background: "linear-gradient(135deg,#B8963E,#D4AF70)" }}
-          >
-            S
-          </div>
+          <img
+            src={logoImg}
+            alt="Sentinel Logo"
+            className="w-10 h-10 rounded-2xl shrink-0 shadow-sm object-contain bg-white"
+          />
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-900 leading-tight">AI Incident Orchestration</p>
             <p className="text-[11px] uppercase tracking-[0.14em] font-extrabold text-amber-700">Command Center</p>
