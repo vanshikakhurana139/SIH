@@ -1,48 +1,61 @@
-import { useState, useEffect } from "react";
-import Hero from "./components/Hero";
-import Reveal from "./components/Reveal";
-import Sidebar from "./components/Sidebar";
-import Header from "./components/Header";
-import ControlBar from "./components/ControlBar";
-import StatCards from "./components/StatCards";
-import ArchitectureStrip, { statusToStep } from "./components/ArchitectureStrip";
-import ActiveIncidentCard from "./components/ActiveIncidentCard";
-import RecentIncidentsTable from "./components/RecentIncidentsTable";
-import TrustScorePanel from "./components/TrustScorePanel";
-import DigitalTwinPanel from "./components/DigitalTwinPanel";
-import HealthCheckPanel from "./components/HealthCheckPanel";
-import DamageMeter from "./components/DamageMeter";
-import AskSystemChat from "./components/AskSystemChat";
-import SystemUptime from "./components/SystemUptime";
+import { useState, useEffect, useCallback } from "react";
 import {
+  simulateIncident,
   getActiveIncident,
   getIncidents,
-  getTrustScores,
-  getHealthCheck,
-  getStats,
-  simulateIncident,
   approveAction,
   rejectAction,
   modifyAction,
   undoAction,
+  getTrustScores,
+  getHealthCheck,
+  getStats,
   loadScenario,
+  enableAutopilot,
 } from "./api/api";
 
-function App() {
-  const [activeIncident, setActiveIncident] = useState(null);
-  const [incidents, setIncidents] = useState([]);
-  const [trustScores, setTrustScores] = useState([]);
-  const [healthCheck, setHealthCheck] = useState(null);
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [notice, setNotice] = useState(null);
-  const [loadError, setLoadError] = useState(null);
-  const [scenario, setScenario] = useState("powerplant");
-  const [entered, setEntered] = useState(false);
+// Landing page
+import LandingPage from "./components/landing/LandingPage";
 
-  async function refreshAll() {
+// Command center shell
+import CmdHeader from "./components/cmd/CmdHeader";
+import CmdSidebar from "./components/cmd/CmdSidebar";
+import ProcessIndicator, { statusToStep } from "./components/cmd/ProcessIndicator";
+
+// Tabs
+import OverviewTab   from "./components/cmd/OverviewTab";
+import IncidentsTab  from "./components/cmd/IncidentsTab";
+import SystemsTab    from "./components/cmd/SystemsTab";
+import ReportsTab    from "./components/cmd/ReportsTab";
+import AlertsTab     from "./components/cmd/AlertsTab";
+import ConfigTab     from "./components/cmd/ConfigTab";
+
+const POLL_MS = 4000;
+
+export default function App() {
+  // ─── Navigation state ───────────────────────────────
+  const [view, setView]           = useState("landing"); // "landing" | "command"
+  const [activeTab, setActiveTab] = useState("overview");
+
+  // ─── Scenario ───────────────────────────────────────
+  const [scenario, setScenario]   = useState("powerplant");
+
+  // ─── Data state ─────────────────────────────────────
+  const [activeIncident, setActiveIncident] = useState(null);
+  const [incidents, setIncidents]           = useState([]);
+  const [trustScores, setTrustScores]       = useState([]);
+  const [healthCheck, setHealthCheck]       = useState(null);
+  const [stats, setStats]                   = useState(null);
+
+  // ─── UI state ───────────────────────────────────────
+  const [notice, setNotice]   = useState("");
+  const [loadError, setLoadError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // ─── Polling ────────────────────────────────────────
+  const refreshAll = useCallback(async () => {
     try {
-      const [inc, list, trust, health, statsData] = await Promise.all([
+      const [inc, all, trust, hc, st] = await Promise.all([
         getActiveIncident(),
         getIncidents(),
         getTrustScores(),
@@ -50,188 +63,195 @@ function App() {
         getStats(),
       ]);
       setActiveIncident(inc);
-      setIncidents(list);
-      setTrustScores(trust);
-      setHealthCheck(health);
-      setStats(statsData);
-      setLoadError(null);
-    } catch (err) {
-      console.error("Dashboard load failed:", err);
-      setLoadError("Could not reach the backend. Is uvicorn running on port 8000?");
+      setIncidents(all || []);
+      setTrustScores(trust || []);
+      setHealthCheck(hc || null);
+      setStats(st || null);
+      setLoadError("");
+    } catch (e) {
+      setLoadError("⚠ Unable to reach backend. Make sure the FastAPI server is running on port 8000.");
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshAll();
+    const t = setInterval(refreshAll, POLL_MS);
+    return () => clearInterval(t);
+  }, [refreshAll]);
+
+  // ─── Handlers ───────────────────────────────────────
+  function flash(msg) {
+    setNotice(msg);
+    setTimeout(() => setNotice(""), 4000);
+  }
+
+  async function handleSimulate(sensor, value) {
+    setLoading(true);
+    try {
+      await simulateIncident(sensor, value);
+      await refreshAll();
+      flash(`✓ Sensor ${sensor} injected at ${value}. AI diagnosis complete.`);
+      setActiveTab("overview");
+    } catch (e) {
+      flash(`⚠ ${e.detail || "Simulation failed — is the backend running?"}`);
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    let ignore = false;
-    async function loadData() {
-      try {
-        const [inc, list, trust, health, statsData] = await Promise.all([
-          getActiveIncident(),
-          getIncidents(),
-          getTrustScores(),
-          getHealthCheck(),
-          getStats(),
-        ]);
-        if (!ignore) {
-          setActiveIncident(inc);
-          setIncidents(list);
-          setTrustScores(trust);
-          setHealthCheck(health);
-          setStats(statsData);
-          setLoadError(null);
-        }
-      } catch (err) {
-        console.error("Dashboard load failed:", err);
-        if (!ignore) {
-          setLoadError("Could not reach the backend. Is uvicorn running on port 8000?");
-        }
-      } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
-      }
-    }
-
-    loadData();
-    return () => {
-      ignore = true;
-    };
-  }, []);
-
   async function handleSwitchScenario(name) {
-    await loadScenario(name);
-    setScenario(name);
-    setActiveIncident(null);
-    setNotice(`Switched to ${name === "hospital" ? "Hospital" : "Power Plant"} scenario.`);
-    refreshAll();
-  }
-
-  async function handleSimulate(sensor, value) {
-    setNotice(null);
+    if (name === scenario) return;
+    setLoading(true);
     try {
-      const diagnosed = await simulateIncident(sensor, value);
-      setActiveIncident(diagnosed);
-      refreshAll();
-    } catch (err) {
-      setNotice(err.detail || "Reading was within safe range — no incident triggered.");
+      await loadScenario(name);
+      setScenario(name);
+      await refreshAll();
+      flash(`✓ Switched to ${name === "hospital" ? "Hospital" : "Power Plant"} scenario.`);
+    } catch (e) {
+      flash(`⚠ ${e.detail || "Scenario switch failed."}`);
+    } finally {
+      setLoading(false);
     }
   }
 
-  async function handleApprove(incidentId, confirmed) {
-    const updated = await approveAction(incidentId, confirmed);
-    setActiveIncident(updated);
-    refreshAll();
+  async function handleApprove(incidentId, confirmed = false) {
+    try {
+      await approveAction(incidentId, confirmed);
+      await refreshAll();
+      flash("✓ Action approved and executed.");
+    } catch (e) {
+      flash(`⚠ ${e.detail || "Approval failed."}`);
+    }
   }
 
   async function handleReject(incidentId) {
-    const updated = await rejectAction(incidentId);
-    setActiveIncident(updated);
-    refreshAll();
+    try {
+      await rejectAction(incidentId);
+      await refreshAll();
+      flash("Action rejected.");
+    } catch (e) {
+      flash(`⚠ ${e.detail || "Rejection failed."}`);
+    }
   }
 
-  async function handleModify(incidentId, text) {
-    const updated = await modifyAction(incidentId, text);
-    setActiveIncident(updated);
-    refreshAll();
+  async function handleModify(incidentId, newAction) {
+    try {
+      await modifyAction(incidentId, newAction);
+      await refreshAll();
+      flash("✓ Action modified and re-queued.");
+    } catch (e) {
+      flash(`⚠ ${e.detail || "Modify failed."}`);
+    }
   }
 
   async function handleUndo(incidentId) {
-    const updated = await undoAction(incidentId);
-    setActiveIncident(updated);
-    refreshAll();
+    try {
+      await undoAction(incidentId);
+      await refreshAll();
+      flash("✓ Action rolled back successfully.");
+    } catch (e) {
+      flash(`⚠ ${e.detail || "Undo failed."}`);
+    }
   }
 
-  if (!entered) {
-    return <Hero onEnter={() => setEntered(true)} />;
+  async function handleEnableAutopilot(ruleId) {
+    try {
+      await enableAutopilot(ruleId);
+      await refreshAll();
+      flash(`✓ Auto-pilot enabled for rule ${ruleId}.`);
+    } catch (e) {
+      flash(`⚠ ${e.detail || "Auto-pilot enable failed."}`);
+    }
   }
+
+  function handleEnterCommandCenter() {
+    setView("command");
+    setActiveTab("overview");
+  }
+
+  function handleSelectEnvironment(env) {
+    handleSwitchScenario(env).then(() => {
+      setView("command");
+      setActiveTab("overview");
+    });
+  }
+
+  // ─── Compute current process step ───────────────────
+  const currentStep = activeIncident ? statusToStep(activeIncident.status) : 1;
+
+  // ─── RENDER: Landing ────────────────────────────────
+  if (view === "landing") {
+    return (
+      <LandingPage
+        stats={stats}
+        onEnter={handleEnterCommandCenter}
+        onSelectEnvironment={handleSelectEnvironment}
+      />
+    );
+  }
+
+  // ─── RENDER: Command Center ──────────────────────────
+  const tabProps = {
+    activeIncident,
+    incidents,
+    trustScores,
+    healthCheck,
+    stats,
+    scenario,
+    onApprove: handleApprove,
+    onReject: handleReject,
+    onModify: handleModify,
+    onUndo: handleUndo,
+    onEnableAutopilot: handleEnableAutopilot,
+    notice,
+    loadError,
+  };
 
   return (
-    <div className="flex h-screen bg-ink overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header scenario={scenario} onSwitchScenario={handleSwitchScenario} />
+    <div className="flex flex-col w-screen h-screen overflow-hidden" style={{ background: "var(--color-ivory)" }}>
+      {/* Top header */}
+      <CmdHeader scenario={scenario} onSwitchScenario={handleSwitchScenario} />
 
-        <div className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="p-8">
-            <ControlBar onSimulate={handleSimulate} scenario={scenario} onSwitchScenario={handleSwitchScenario} />
+      {/* Body: sidebar + content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <CmdSidebar activeTab={activeTab} onTabChange={setActiveTab} />
 
-            {notice && (
-              <div className="mb-6 px-4 py-3 rounded-xl dash-card text-[13px] text-fg-muted border-accent/20 bg-accent/5">{notice}</div>
+        {/* Main content area */}
+        <div className="flex flex-col flex-1 overflow-hidden">
+          {/* Loading bar */}
+          {loading && (
+            <div className="h-0.5 w-full relative overflow-hidden" style={{ background: "rgba(184,150,62,0.15)" }}>
+              <div
+                className="absolute inset-y-0 left-0 h-full progress-shimmer"
+                style={{ background: "linear-gradient(90deg,#B8963E,#D4AF70,#B8963E)", width: "40%", animation: "shimmer-sweep 1.2s ease-in-out infinite" }}
+              />
+            </div>
+          )}
+
+          {/* Tab content */}
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {activeTab === "overview" && <OverviewTab {...tabProps} />}
+            {activeTab === "incidents" && <IncidentsTab incidents={incidents} />}
+            {activeTab === "systems" && <SystemsTab incidents={incidents} scenario={scenario} />}
+            {activeTab === "reports" && (
+              <ReportsTab
+                stats={stats}
+                incidents={incidents}
+                trustScores={trustScores}
+                healthCheck={healthCheck}
+              />
             )}
-            {loadError && (
-              <div className="mb-6 px-4 py-3 rounded-xl bg-severity-critical/10 border border-severity-critical/30 text-[13px] text-severity-critical">
-                {loadError}
-              </div>
-            )}
-
-            {loading ? (
-              <div className="flex items-center gap-2 text-[13px] text-fg-subtle font-mono">
-                <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse" />
-                Loading dashboard…
-              </div>
-            ) : (
-              <>
-                <div className="flex items-start justify-between gap-6 mb-6">
-                  <div className="flex-1">
-                    <Reveal delay={0}>
-                      <StatCards stats={stats} />
-                    </Reveal>
-                  </div>
-                  <div className="w-[600px] shrink-0">
-                    <Reveal delay={80}>
-                      <ArchitectureStrip activeStep={statusToStep(activeIncident?.status)} />
-                    </Reveal>
-                  </div>
-                </div>
-
-                <div className="flex gap-6">
-                  {/* Left Column (Main Content) */}
-                  <div className="flex-1 flex flex-col gap-6 min-w-0">
-                    <Reveal delay={120}>
-                      <ActiveIncidentCard
-                        incident={activeIncident}
-                        onApprove={handleApprove}
-                        onReject={handleReject}
-                        onModify={handleModify}
-                        onUndo={handleUndo}
-                      />
-                    </Reveal>
-                    <Reveal delay={180}>
-                      <RecentIncidentsTable incidents={incidents} />
-                    </Reveal>
-                  </div>
-
-                  {/* Right Sidebar */}
-                  <div className="w-[360px] shrink-0 flex flex-col gap-6">
-                    <Reveal delay={160}>
-                      <TrustScorePanel trustScores={trustScores} />
-                    </Reveal>
-                    <Reveal delay={220}>
-                      <DigitalTwinPanel incident={activeIncident} scenario={scenario} />
-                    </Reveal>
-                    <Reveal delay={280}>
-                      <HealthCheckPanel healthCheck={healthCheck} />
-                    </Reveal>
-                    <Reveal delay={340}>
-                      <DamageMeter incident={activeIncident} />
-                    </Reveal>
-                    <Reveal delay={400}>
-                      <AskSystemChat incident={activeIncident} />
-                    </Reveal>
-                    <Reveal delay={460}>
-                      <SystemUptime />
-                    </Reveal>
-                  </div>
-                </div>
-              </>
+            {activeTab === "alerts" && <AlertsTab incidents={incidents} />}
+            {activeTab === "config" && (
+              <ConfigTab scenario={scenario} onSimulate={handleSimulate} />
             )}
           </div>
+
+          {/* Process indicator strip */}
+          <ProcessIndicator activeStep={currentStep} />
         </div>
       </div>
     </div>
   );
 }
-
-export default App;
