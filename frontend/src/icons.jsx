@@ -1,7 +1,3 @@
-// Minimal stroke-based line icons — single weight, currentColor only.
-// Kept in one file since each icon is a handful of path lines and this
-// avoids fourteen tiny files for a set that will barely change.
-
 const base = {
   viewBox: "0 0 24 24",
   fill: "none",
@@ -67,6 +63,43 @@ export function IconArrow({ width = 14, height = 14, ...rest }) {
   return (
     <svg {...base} width={width} height={height} {...rest}>
       <path d="M4 12h16M13 5l7 7-7 7" />
+    </svg>
+  );
+}
+
+export function IconAlertTriangle({ width = 16, height = 16, ...rest }) {
+  return (
+    <svg {...base} width={width} height={height} {...rest}>
+      <path d="M12 3 2 20h20L12 3Z" />
+      <path d="M12 9v5" />
+      <path d="M12 17h.01" />
+    </svg>
+  );
+}
+
+export function IconCheckCircle({ width = 16, height = 16, ...rest }) {
+  return (
+    <svg {...base} width={width} height={height} {...rest}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12 3 3 5-6" />
+    </svg>
+  );
+}
+
+export function IconDial({ width = 16, height = 16, ...rest }) {
+  return (
+    <svg {...base} width={width} height={height} {...rest}>
+      <path d="M4 15a8 8 0 0 1 16 0" />
+      <path d="M12 15 16 9" />
+      <circle cx="12" cy="15" r="1.4" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
+export function IconBolt({ width = 16, height = 16, ...rest }) {
+  return (
+    <svg {...base} width={width} height={height} {...rest}>
+      <path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" />
     </svg>
   );
 }

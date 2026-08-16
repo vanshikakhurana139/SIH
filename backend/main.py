@@ -1,19 +1,17 @@
-# pyrefly: ignore [missing-import]
+from pathlib import Path
+import json
 from fastapi import FastAPI, UploadFile, File, HTTPException
-# pyrefly: ignore [missing-import]
-from pydantic import BaseModel
-from reasoning_engine import diagnose_incident
-from database import get_rule_by_id, get_incident_by_id
-# pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from reasoning_engine import diagnose_incident
 from orchestration import execute_action, undo_action
 from database import (
+    init_db, save_rules, clear_rules, get_all_rules, save_incident, get_all_incidents,
+    get_rule_by_id, get_incident_by_id,
     append_audit_log, get_audit_log, verify_audit_chain,
     get_all_trust_scores, enable_autopilot,
 )
-import json
-
-from database import init_db, save_rules, get_all_rules, save_incident, get_all_incidents
 from rule_engine import match_data_point
 
 app = FastAPI(title="SENTINEL Backend")
@@ -49,6 +47,30 @@ async def upload_rules(file: UploadFile = File(...)):
 
     save_rules(rules)
     return {"message": f"{len(rules)} rules loaded", "rules": rules}
+
+
+SCENARIO_FILES = {
+    "powerplant": "rules_powerplant.json",
+    "hospital": "rules_hospital.json",
+}
+
+
+@app.post("/scenario/{name}")
+def load_scenario(name: str):
+    """Swaps the entire active rule set — proves genericity with zero code change."""
+    if name not in SCENARIO_FILES:
+        raise HTTPException(status_code=404, detail="Unknown scenario")
+
+    path = Path(__file__).parent / SCENARIO_FILES[name]
+    if not path.exists():
+        raise HTTPException(status_code=404, detail=f"{path.name} not found on disk")
+
+    with open(path) as f:
+        rules = json.load(f)
+
+    clear_rules()
+    save_rules(rules)
+    return {"scenario": name, "rules_loaded": len(rules)}
 
 
 @app.get("/rules")

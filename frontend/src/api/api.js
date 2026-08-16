@@ -1,4 +1,4 @@
-﻿import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
+import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
 
 const BASE_URL = "http://127.0.0.1:8000";
 
@@ -92,5 +92,14 @@ export async function undoAction(incidentId) {
 
 export async function enableAutopilot(ruleId) {
   const res = await fetch(`${BASE_URL}/trust-scores/${ruleId}/enable-autopilot`, { method: "POST" });
+  return res.json();
+}
+
+export async function loadScenario(name) {
+  const res = await fetch(`${BASE_URL}/scenario/${name}`, { method: "POST" });
+  if (!res.ok) {
+    const err = await res.json();
+    throw { status: res.status, detail: err.detail };
+  }
   return res.json();
 }

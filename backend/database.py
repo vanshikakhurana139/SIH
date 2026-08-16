@@ -68,6 +68,15 @@ def save_rules(rules: list[dict]):
     conn.close()
 
 
+def clear_rules():
+    """Wipes the active rule set so a scenario swap doesn't mix two industries' rules."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM rules")
+    conn.commit()
+    conn.close()
+
+
 def get_all_rules() -> list[dict]:
     conn = get_connection()
     cur = conn.cursor()

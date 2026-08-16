@@ -1,38 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
-/*
-  SENTINEL design tokens.
-  Modeled on control-room / instrumentation software rather than
-  consumer SaaS: a graphite base (not pure black), one restrained
-  interactive accent, and a dedicated 5-color severity system that
-  carries meaning everywhere else in the UI stays quiet.
-*/
 @theme {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
 
-  --color-ink: #0a0d12;
-  --color-surface: #12161d;
-  --color-surface-raised: #171c25;
-  --color-border: #262d3d;
-  --color-border-subtle: #1a2029;
+  --color-ink: #F7F8FA;
+  --color-surface: #FFFFFF;
+  --color-surface-raised: #F1F3F6;
+  --color-border: #E3E7ED;
+  --color-border-subtle: #ECEEF2;
+  --color-border-strong: #C7CDD6;
 
-  --color-fg: #e8eaf0;
-  --color-fg-muted: #8d96ab;
-  --color-fg-subtle: #565e73;
+  --color-fg: #12141C;
+  --color-fg-muted: #5B6472;
+  --color-fg-subtle: #94A0B2;
 
-  --color-accent: #5e7ce2;
+  --color-accent: #1D4E89;
 
-  --color-severity-low: #6b8cae;
-  --color-severity-medium: #d9a441;
-  --color-severity-high: #db7f3b;
-  --color-severity-critical: #d64545;
-  --color-positive: #3fae7c;
+  --color-severity-low: #3E6E93;
+  --color-severity-medium: #A6790A;
+  --color-severity-high: #C2622A;
+  --color-severity-critical: #C22A2A;
+  --color-positive: #1F7A4D;
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
@@ -44,19 +39,19 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--color-accent) 35%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
+  scrollbar-color: var(--color-border-strong) transparent;
 }
 *::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: var(--color-border);
+  background: var(--color-border-strong);
   border-radius: 4px;
 }
 *::-webkit-scrollbar-track {

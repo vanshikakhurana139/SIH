@@ -1,0 +1,49 @@
+[
+    {
+        "rule_id": "HOSP-001",
+        "sensor": "heart_rate",
+        "operator": ">",
+        "threshold": 130.0,
+        "severity": "high",
+        "suggested_actions": [
+            "Alert attending nurse immediately",
+            "Initiate continuous ECG monitoring",
+            "Prepare beta-blocker per protocol, pending physician order"
+        ],
+        "rollback_steps": [
+            "Discontinue continuous ECG monitoring once vitals stabilize",
+            "Cancel pending medication order if not administered"
+        ],
+        "reversible": true
+    },
+    {
+        "rule_id": "HOSP-002",
+        "sensor": "spo2",
+        "operator": "<",
+        "threshold": 90.0,
+        "severity": "critical",
+        "suggested_actions": [
+            "Administer supplemental oxygen immediately",
+            "Page rapid response team"
+        ],
+        "rollback_steps": [
+            "Cannot be rolled back automatically — requires physician sign-off"
+        ],
+        "reversible": false
+    },
+    {
+        "rule_id": "HOSP-003",
+        "sensor": "systolic_bp",
+        "operator": "<",
+        "threshold": 90.0,
+        "severity": "medium",
+        "suggested_actions": [
+            "Increase IV fluid rate",
+            "Recheck blood pressure in 5 minutes"
+        ],
+        "rollback_steps": [
+            "Return IV fluid rate to baseline once BP normalizes"
+        ],
+        "reversible": true
+    }
+]
