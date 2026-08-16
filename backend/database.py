@@ -196,7 +196,33 @@ def verify_audit_chain(incident_id: str) -> bool:
         prev_hash = entry["hash"]
     return True
 
+def get_audit_events_for_rule(rule_id: str, event_types: tuple[str, ...]) -> list[dict]:
+    """
+    Used by the Skeptic (consensus_engine.py) to find a REAL past failure for
+    this rule_id — pulled from the tamper-evident Audit Log, across every past
+    incident of this rule, not just the one currently being cross-examined.
+    Returns rows newest-first.
+    """
+    matching_ids = [i["id"] for i in get_all_incidents() if i.get("rule_id") == rule_id]
+    if not matching_ids:
+        return []
 
+    conn = get_connection()
+    cur = conn.cursor()
+    id_placeholders = ",".join("?" * len(matching_ids))
+    type_placeholders = ",".join("?" * len(event_types))
+    cur.execute(
+        f"""SELECT event_type, content, timestamp FROM audit_log
+            WHERE incident_id IN ({id_placeholders}) AND event_type IN ({type_placeholders})
+            ORDER BY id DESC""",
+        (*matching_ids, *event_types),
+    )
+    rows = cur.fetchall()
+    conn.close()
+    return [
+        {"event_type": r["event_type"], "content": json.loads(r["content"]), "timestamp": r["timestamp"]}
+        for r in rows
+    ]
 # ---------- Trust Score ----------
 
 def record_outcome(rule_id: str, success: bool):
@@ -265,3 +291,4 @@ def get_all_trust_scores() -> list[dict]:
             "auto_pilot_enabled": bool(s["auto_pilot_enabled"]),
         })
     return result
+    

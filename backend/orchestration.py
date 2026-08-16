@@ -15,11 +15,22 @@ OPERATORS = {">": operator.gt, "<": operator.lt, "==": operator.eq}
 def _deterministic_outcome(incident: dict) -> bool:
     """
     No forced outcome given — decide success probabilistically, weighted by
-    the Reasoning Engine's own confidence score. Deterministic (same incident
-    always gives the same result) so the demo is repeatable, not random.
+    a confidence score. Deterministic (same incident always gives the same
+    result) so the demo is repeatable, not random.
+
+    Phase 1 (Red Team) wiring: if this incident has been cross-examined,
+    consensus_confidence — the score that has already survived a logged
+    Advocate/Skeptic rebuttal — is used instead of the raw Confidence Score.
+    This is what "gates the autonomy boundary on a score that has survived
+    scrutiny" means in practice: it is the value that decides whether this
+    action counts as a success for the Trust Score. Falls back to the raw
+    confidence when cross-examination hasn't run yet, so nothing breaks.
     """
     roll = int(hashlib.md5(incident["id"].encode()).hexdigest(), 16) % 100
-    return roll < incident["confidence"]
+    effective_confidence = incident.get("consensus_confidence")
+    if effective_confidence is None:
+        effective_confidence = incident["confidence"]
+    return roll < effective_confidence
 
 
 def execute_action(incident: dict, rule: dict, force_outcome: str | None = None) -> dict:

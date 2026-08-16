@@ -1,17 +1,17 @@
 const SEVERITY_STYLE = {
-  low:      { bg: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
-  medium:   { bg: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-500" },
-  high:     { bg: "bg-orange-50 text-orange-700 border-orange-200", dot: "bg-orange-500" },
+  low: { bg: "bg-blue-50 text-blue-700 border-blue-200", dot: "bg-blue-500" },
+  medium: { bg: "bg-amber-50 text-amber-700 border-amber-200", dot: "bg-amber-500" },
+  high: { bg: "bg-orange-50 text-orange-700 border-orange-200", dot: "bg-orange-500" },
   critical: { bg: "bg-red-50 text-red-700 border-red-200", dot: "bg-red-500" },
 };
 
 const STATUS_STYLE = {
-  active:            { bg: "bg-green-50 text-green-700 border-green-200", label: "Active" },
-  diagnosed:         { bg: "bg-green-50 text-green-700 border-green-200", label: "Active" },
-  pending_approval:  { bg: "bg-green-50 text-green-700 border-green-200", label: "Active" },
-  resolved:          { bg: "bg-slate-50 text-slate-600 border-slate-200", label: "Resolved" },
-  rejected:          { bg: "bg-slate-50 text-slate-600 border-slate-200", label: "Rejected" },
-  failed:            { bg: "bg-red-50 text-red-700 border-red-200", label: "Failed" },
+  active: { bg: "bg-green-50 text-green-700 border-green-200", label: "Active" },
+  diagnosed: { bg: "bg-green-50 text-green-700 border-green-200", label: "Active" },
+  pending_approval: { bg: "bg-green-50 text-green-700 border-green-200", label: "Active" },
+  resolved: { bg: "bg-slate-50 text-slate-600 border-slate-200", label: "Resolved" },
+  rejected: { bg: "bg-slate-50 text-slate-600 border-slate-200", label: "Rejected" },
+  failed: { bg: "bg-red-50 text-red-700 border-red-200", label: "Failed" },
 };
 
 function Badge({ className, children }) {

@@ -9,11 +9,13 @@ from pydantic import BaseModel
 
 from reasoning_engine import diagnose_incident
 from orchestration import execute_action, undo_action
+from consensus_engine import build_case
 from database import (
     init_db, save_rules, clear_rules, get_all_rules, save_incident, get_all_incidents,
     get_rule_by_id, get_incident_by_id,
     append_audit_log, get_audit_log, verify_audit_chain,
     get_all_trust_scores, enable_autopilot,
+    get_audit_events_for_rule,
 )
 from rule_engine import match_data_point
 
@@ -127,6 +129,51 @@ def diagnose(incident_id: str):
     return diagnosed
 
 
+@app.post("/incidents/{incident_id}/cross-examine")
+def cross_examine(incident_id: str):
+    """
+    Runs the Adversarial Consensus Engine on an already-diagnosed incident:
+    builds the Advocate case, the Skeptic case, and a Consensus Confidence
+    Score, then logs the full exchange as a new hash-linked Audit Log row.
+    """
+    incident = get_incident_by_id(incident_id)
+    if incident is None:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    if incident.get("status") not in ("diagnosed", "pending_approval", "approved"):
+        raise HTTPException(status_code=400, detail="Incident must be diagnosed before cross-examination")
+
+    rule = get_rule_by_id(incident["rule_id"])
+    if rule is None:
+        raise HTTPException(status_code=404, detail="Matching rule not found")
+
+    trust_entry = next(
+        (t for t in get_all_trust_scores() if t["rule_id"] == incident["rule_id"]), None
+    )
+
+    # A real past failure: either a failed Health Check or a completed Undo,
+    # from any PAST incident of this same rule_id.
+    past_events = get_audit_events_for_rule(incident["rule_id"], ("health_check", "undo_completed"))
+    past_failure = next(
+        (e for e in past_events if e["event_type"] == "undo_completed" or e["content"].get("result") == "failed"),
+        None,
+    )
+
+    case = build_case(incident, rule, trust_score=trust_entry, past_failure=past_failure)
+
+    incident["advocate_case"] = case["advocate_case"]
+    incident["skeptic_case"] = case["skeptic_case"]
+    incident["consensus_confidence"] = case["consensus_confidence"]
+    incident["verdict_line"] = case["verdict_line"]
+    save_incident(incident)
+
+    append_audit_log(incident_id, "cross_examination", {
+        "advocate_case": case["advocate_case"],
+        "skeptic_case": case["skeptic_case"],
+        "consensus_confidence": case["consensus_confidence"],
+        "verdict_line": case["verdict_line"],
+    })
+
+    return incident
 class ModifyRequest(BaseModel):
     recommended_action: str
 
