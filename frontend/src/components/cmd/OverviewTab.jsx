@@ -8,6 +8,7 @@ import SystemGuardrailsLog from "./SystemGuardrailsLog";
 import AskSystemChat from "../AskSystemChat";
 import TrustScorePanel from "../TrustScorePanel";
 import StatCards from "../StatCards";
+import CrossExaminationPanel from "../CrossExaminationPanel";
 
 function ActiveIncidentHero({ incident }) {
   const sevColor = {
@@ -121,6 +122,8 @@ export default function OverviewTab({
             <div className="lg:col-span-8 flex flex-col gap-8 min-w-0">
               <Environment3D scenario={scenario} incident={activeIncident} />
               <LiveSignals incident={activeIncident} scenario={scenario} />
+              {/* Feature A: Adversarial Consensus Engine ("Red Team") */}
+              <CrossExaminationPanel incident={activeIncident} />
               <AskSystemChat incident={activeIncident} />
             </div>
 

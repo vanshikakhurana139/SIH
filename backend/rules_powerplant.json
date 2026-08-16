@@ -14,7 +14,12 @@
             "Restore turbine load to previous setpoint",
             "Return coolant flow rate to normal baseline"
         ],
-        "reversible": true
+        "reversible": true,
+        "risk_factors": [
+            "Sensor may be reading a transient spike, not a sustained rise",
+            "Reducing turbine load can itself trigger a brief vibration transient",
+            "Coolant flow increase has previously masked a failing secondary pump rather than fixing it"
+        ]
     },
     {
         "rule_id": "PP-002",
@@ -29,7 +34,12 @@
         "rollback_steps": [
             "Cannot be rolled back automatically — requires manual inspection sign-off"
         ],
-        "reversible": false
+        "reversible": false,
+        "risk_factors": [
+            "Emergency shutdown carries its own restart risk on aging bearings",
+            "Vibration sensors near this unit have a known history of loose-mount false readings",
+            "A full shutdown halts production for the plant, not just the flagged unit"
+        ]
     },
     {
         "rule_id": "PP-003",
@@ -44,6 +54,10 @@
         "rollback_steps": [
             "Deactivate backup coolant pump once primary is restored"
         ],
-        "reversible": true
+        "reversible": true,
+        "risk_factors": [
+            "Backup pump activation draws from a shared reserve tank used by two other systems",
+            "A slow pressure drop can also indicate sensor calibration drift, not a real leak"
+        ]
     }
 ]

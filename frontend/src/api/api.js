@@ -1,4 +1,4 @@
-import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
+﻿import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
 
 const BASE_URL = "http://127.0.0.1:8000";
 
@@ -16,7 +16,25 @@ export async function simulateIncident(sensor, value) {
   if (!data.matched) throw { status: 204, detail: "No rule matched this reading" };
 
   const diagRes = await fetch(`${BASE_URL}/diagnose/${data.incident.id}`, { method: "POST" });
-  return diagRes.json();
+  const diagnosed = await diagRes.json();
+
+  // Phase 1 (Red Team): trigger Cross-Examination automatically right after
+  // diagnose, so it reads as part of one continuous reasoning flow rather
+  // than a separate button. Never blocks the main flow if it fails.
+  try {
+    return await crossExamine(diagnosed.id);
+  } catch (e) {
+    return diagnosed;
+  }
+}
+
+export async function crossExamine(incidentId) {
+  const res = await fetch(`${BASE_URL}/incidents/${incidentId}/cross-examine`, { method: "POST" });
+  if (!res.ok) {
+    const err = await res.json();
+    throw { status: res.status, detail: err.detail };
+  }
+  return res.json();
 }
 
 export async function getActiveIncident() {

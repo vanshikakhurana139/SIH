@@ -14,7 +14,12 @@
             "Discontinue continuous ECG monitoring once vitals stabilize",
             "Cancel pending medication order if not administered"
         ],
-        "reversible": true
+        "reversible": true,
+        "risk_factors": [
+            "Elevated heart rate can be caused by patient anxiety or movement artifact, not a cardiac event",
+            "Beta-blocker administration without physician confirmation carries dosing risk",
+            "Continuous ECG monitoring can trigger alarm fatigue if started on a transient spike"
+        ]
     },
     {
         "rule_id": "HOSP-002",
@@ -29,7 +34,12 @@
         "rollback_steps": [
             "Cannot be rolled back automatically — requires physician sign-off"
         ],
-        "reversible": false
+        "reversible": false,
+        "risk_factors": [
+            "Pulse oximeter readings are unreliable on patients with poor peripheral circulation or nail polish",
+            "Paging rapid response for a false reading has a real cost to other patients being triaged",
+            "Supplemental oxygen at high flow can mask a worsening underlying condition if over-relied on"
+        ]
     },
     {
         "rule_id": "HOSP-003",
@@ -44,6 +54,10 @@
         "rollback_steps": [
             "Return IV fluid rate to baseline once BP normalizes"
         ],
-        "reversible": true
+        "reversible": true,
+        "risk_factors": [
+            "Low blood pressure readings can result from incorrect cuff sizing or arm position",
+            "Increased IV fluid rate is risky for patients with underlying heart or kidney conditions"
+        ]
     }
 ]
