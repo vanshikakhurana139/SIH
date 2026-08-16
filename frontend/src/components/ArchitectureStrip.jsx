@@ -9,7 +9,7 @@ const STEPS = [
   { num: 6, label: "Health Check", sub: "Monitoring" },
 ];
 
-export default function ArchitectureStrip({ activeStep = 3 }) {
+export default function ArchitectureStrip({ activeStep = 1 }) {
   return (
     <div className="dash-card p-4 rounded-2xl">
       <div className="flex items-center justify-between gap-1 overflow-x-auto py-1">
@@ -19,22 +19,20 @@ export default function ArchitectureStrip({ activeStep = 3 }) {
           return (
             <div key={step.num} className="flex items-center gap-1.5 shrink-0">
               <div
-                className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl transition-all duration-300 border ${
-                  isActive
-                    ? "bg-gradient-to-r from-accent to-accent-light border-accent text-white shadow-md shadow-accent/25 scale-[1.03]"
-                    : isDone
+                className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl transition-all duration-300 border ${isActive
+                  ? "bg-gradient-to-r from-accent to-accent-light border-accent text-white shadow-md shadow-accent/25 scale-[1.03]"
+                  : isDone
                     ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-800"
                     : "bg-white/50 border-white/80 text-fg-muted hover:bg-white/80"
-                }`}
+                  }`}
               >
                 <span
-                  className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black shrink-0 ${
-                    isActive
-                      ? "bg-white/25 text-white"
-                      : isDone
+                  className={`flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-black shrink-0 ${isActive
+                    ? "bg-white/25 text-white"
+                    : isDone
                       ? "bg-emerald-600 text-white"
                       : "bg-accent/15 text-accent"
-                  }`}
+                    }`}
                 >
                   {isDone ? "✓" : step.num}
                 </span>
@@ -58,6 +56,30 @@ export default function ArchitectureStrip({ activeStep = 3 }) {
           );
         })}
       </div>
+
+      <div className="relative h-1 mt-3 rounded-full bg-fg-subtle/10 overflow-hidden">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-accent to-accent-light transition-all duration-700 ease-out"
+          style={{ width: `${((activeStep - 1) / (STEPS.length - 1)) * 100}%` }}
+        >
+          <div className="absolute inset-0 progress-shimmer" />
+        </div>
+      </div>
     </div>
   );
+}
+
+export function statusToStep(status) {
+  switch (status) {
+    case "diagnosed":
+      return 3;
+    case "resolved":
+    case "failed":
+      return 6;
+    case "rejected":
+    case "undone":
+      return 4;
+    default:
+      return 1; // no active incident — idle at Sensor Data
+  }
 }
