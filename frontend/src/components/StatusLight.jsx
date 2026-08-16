@@ -27,6 +27,7 @@ const STATUS_COLOR = {
   executed: "var(--color-accent)",
   resolved: "var(--color-positive)",
   failed: "var(--color-severity-critical)",
+  undone: "var(--color-fg-subtle)",
 };
 
 export function StatusLight({ status, className = "" }) {

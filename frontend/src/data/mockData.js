@@ -1,4 +1,4 @@
-﻿// mockData.js
+// mockData.js
 export const mockIncident = {
   id: "inc-8f21a9",
   severity: "high",

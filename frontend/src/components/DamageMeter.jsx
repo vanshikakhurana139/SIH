@@ -44,21 +44,21 @@ export default function DamageMeter({ incident }) {
   const chartData = history.length ? history : [{ t: 0, cost: 0 }];
 
   return (
-    <div className="bg-surface border border-border-subtle rounded-2xl p-5 shadow-sm">
+    <div className="dash-card p-5 relative overflow-hidden">
       <div className="flex items-center justify-between mb-1">
-        <p className="text-[11px] uppercase tracking-[0.1em] text-fg-subtle font-semibold">
-          Damage Meter
+        <p className="text-[10.5px] uppercase tracking-widest text-fg-subtle font-extrabold">
+          Damage Meter <span className="font-mono text-[9px] text-fg-subtle">(ESTIMATED)</span>
         </p>
         <span
-          className={`text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${
-            isActive ? "bg-severity-critical/10 text-severity-critical" : "bg-fg-subtle/10 text-fg-subtle"
+          className={`text-[9.5px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-2xs ${
+            isActive ? "bg-red-500/10 text-red-600 border-red-500/30 animate-pulse" : "bg-emerald-500/10 text-emerald-700 border-emerald-500/30"
           }`}
         >
-          {isActive ? "Climbing" : "Stopped"}
+          {isActive ? "⚡ CLIMBING" : "STOPPED"}
         </span>
       </div>
 
-      <p className="font-display font-extrabold text-3xl text-fg tabular-nums mb-2">
+      <p className="font-display font-black text-3xl text-gradient-danger tabular-nums mb-2 tracking-tight">
         ${cost.toLocaleString()}
       </p>
 
@@ -67,26 +67,28 @@ export default function DamageMeter({ incident }) {
           <AreaChart data={chartData}>
             <defs>
               <linearGradient id="damageFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--color-severity-critical)" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="var(--color-severity-critical)" stopOpacity={0} />
+                <stop offset="0%" stopColor="#C92A2A" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="#C92A2A" stopOpacity={0.0} />
               </linearGradient>
             </defs>
             <YAxis hide domain={["auto", "auto"]} />
             <Area
               type="monotone"
               dataKey="cost"
-              stroke="var(--color-severity-critical)"
-              strokeWidth={2}
+              stroke="#C92A2A"
+              strokeWidth={2.5}
               fill="url(#damageFill)"
               isAnimationActive={false}
+              style={{ filter: "drop-shadow(0 2px 6px rgba(201,42,42,0.3))" }}
             />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      <p className="text-[11px] text-fg-subtle mt-1">
-        {isActive ? `${elapsed}s unresolved` : "No active delay"}
-      </p>
+      <div className="flex items-center justify-between mt-1 text-[11px] font-semibold text-fg-subtle">
+        <span>{isActive ? `${elapsed}s unresolved` : "No active delay"}</span>
+        <span className="font-mono text-red-600">${rate}/sec</span>
+      </div>
     </div>
   );
 }
