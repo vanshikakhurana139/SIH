@@ -1,6 +1,6 @@
 import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
 
-const BASE_URL = "http://127.0.0.1:8000";
+const BASE_URL = "https://sih-fawk.onrender.com";
 
 // Trust Score / Health Check / Stats endpoints don't exist until Phase 5 —
 // stay mocked here on purpose so Phase 4 doesn't block waiting on them.
