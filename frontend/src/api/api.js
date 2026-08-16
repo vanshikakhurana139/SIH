@@ -1,4 +1,4 @@
-﻿import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
+import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
 
 const BASE_URL = "http://127.0.0.1:8000";
 
@@ -23,7 +23,7 @@ export async function simulateIncident(sensor, value) {
   // than a separate button. Never blocks the main flow if it fails.
   try {
     return await crossExamine(diagnosed.id);
-  } catch (e) {
+  } catch {
     return diagnosed;
   }
 }
