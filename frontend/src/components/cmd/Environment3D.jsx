@@ -48,20 +48,22 @@ export default function Environment3D({ scenario = "powerplant", incident }) {
   const [hoveredNode, setHoveredNode] = useState(null);
   const [rotation, setRotation] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
-  const containerRef = useRef(null);
-  const isDragging = useRef(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const isDraggingRef = useRef(false);
   const lastMouse = useRef({ x: 0, y: 0 });
+  const containerRef = useRef(null);
 
   const nodes = scenario === "hospital" ? HOSPITAL_NODES : POWERPLANT_NODES;
   const photo = PHOTO[scenario];
   const activeSource = incident?.source;
 
   function handleMouseDown(e) {
-    isDragging.current = true;
+    isDraggingRef.current = true;
+    setIsDragging(true);
     lastMouse.current = { x: e.clientX, y: e.clientY };
   }
   function handleMouseMove(e) {
-    if (!isDragging.current) return;
+    if (!isDraggingRef.current) return;
     const dx = e.clientX - lastMouse.current.x;
     const dy = e.clientY - lastMouse.current.y;
     setRotation((r) => ({
@@ -70,7 +72,10 @@ export default function Environment3D({ scenario = "powerplant", incident }) {
     }));
     lastMouse.current = { x: e.clientX, y: e.clientY };
   }
-  function handleMouseUp() { isDragging.current = false; }
+  function handleMouseUp() {
+    isDraggingRef.current = false;
+    setIsDragging(false);
+  }
 
   useEffect(() => {
     window.addEventListener("mouseup", handleMouseUp);
@@ -78,19 +83,18 @@ export default function Environment3D({ scenario = "powerplant", incident }) {
   }, []);
 
   return (
-    <div className="ivory-card overflow-hidden relative" style={{ minHeight: 340 }}>
+    <div className="ivory-card overflow-hidden relative rounded-3xl border border-slate-200/80 shadow-sm" style={{ minHeight: 480 }}>
       {/* Controls bar */}
-      <div className="absolute top-3 right-3 z-20 flex items-center gap-1.5">
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
         {[
-          { label: "Rotate", action: () => setRotation({ x: 0, y: 0 }) },
-          { label: "Zoom",   action: () => setZoom((z) => z === 1 ? 1.2 : 1) },
-          { label: "Focus",  action: () => { setRotation({ x: 0, y: 0 }); setZoom(1); } },
-          { label: "Layers", action: null },
+          { label: "Reset Rotation", action: () => setRotation({ x: 0, y: 0 }) },
+          { label: "Toggle Zoom",   action: () => setZoom((z) => z === 1 ? 1.25 : 1) },
+          { label: "Center Focus",  action: () => { setRotation({ x: 0, y: 0 }); setZoom(1); } },
         ].map(({ label, action }) => (
           <button
             key={label}
             onClick={action}
-            className="px-2.5 py-1 rounded-lg border border-border-subtle bg-white/80 hover:bg-white text-[10px] font-bold text-fg-muted transition-all backdrop-blur-sm"
+            className="px-3.5 py-1.5 rounded-xl border border-slate-200/80 bg-white/90 hover:bg-white text-xs font-extrabold text-slate-700 shadow-xs transition-all backdrop-blur-md"
           >
             {label}
           </button>
@@ -100,17 +104,19 @@ export default function Environment3D({ scenario = "powerplant", incident }) {
       {/* 3D Scene */}
       <div
         ref={containerRef}
-        className="relative overflow-hidden cursor-grab active:cursor-grabbing select-none"
-        style={{ height: 340 }}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
+        className="relative w-full h-full cursor-grab active:cursor-grabbing select-none overflow-hidden"
+        style={{ minHeight: 480 }}
       >
-        {/* Background photo */}
-        <img
-          src={photo}
-          alt="Environment"
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
-          style={{ transform: `scale(${zoom})`, transition: "transform 0.4s ease", filter: "brightness(0.75) saturate(0.8)" }}
+        {/* Photo background */}
+        <div
+          className="absolute inset-0 bg-cover bg-center transition-transform duration-500 ease-out"
+          style={{
+            backgroundImage: `url(${photo})`,
+            transform: `scale(${zoom * 1.05})`,
+            filter: "brightness(0.92) contrast(1.05) saturate(0.85)",
+          }}
         />
 
         {/* Warm overlay */}
@@ -125,7 +131,7 @@ export default function Environment3D({ scenario = "powerplant", incident }) {
           style={{
             perspective: "900px",
             transform: `rotateX(${rotation.x}deg) rotateY(${rotation.y}deg)`,
-            transition: isDragging.current ? "none" : "transform 0.5s ease",
+            transition: isDragging ? "none" : "transform 0.5s ease",
           }}
         >
           {/* SVG connections */}

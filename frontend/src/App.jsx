@@ -20,7 +20,8 @@ import LandingPage from "./components/landing/LandingPage";
 // Command center shell
 import CmdHeader from "./components/cmd/CmdHeader";
 import CmdSidebar from "./components/cmd/CmdSidebar";
-import ProcessIndicator, { statusToStep } from "./components/cmd/ProcessIndicator";
+import ProcessIndicator from "./components/cmd/ProcessIndicator";
+import { statusToStep } from "./utils/statusUtils";
 
 // Tabs
 import OverviewTab   from "./components/cmd/OverviewTab";
@@ -68,13 +69,16 @@ export default function App() {
       setHealthCheck(hc || null);
       setStats(st || null);
       setLoadError("");
-    } catch (e) {
+    } catch {
       setLoadError("⚠ Unable to reach backend. Make sure the FastAPI server is running on port 8000.");
     }
   }, []);
 
   useEffect(() => {
-    refreshAll();
+    const fetchInitial = async () => {
+      await refreshAll();
+    };
+    fetchInitial();
     const t = setInterval(refreshAll, POLL_MS);
     return () => clearInterval(t);
   }, [refreshAll]);

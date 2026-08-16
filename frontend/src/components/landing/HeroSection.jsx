@@ -88,26 +88,28 @@ function Infrastructure3D({ activeNode, onHover }) {
 
 function StatusPanel({ stats }) {
   return (
-    <div className="status-panel p-6 w-[280px]">
-      <p className="eyebrow mb-4">Live System Status</p>
-      <div className="flex items-center gap-2 mb-5">
-        <span className="live-dot bg-emerald-500 w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: "#2D7A5A" }} />
-        <span className="text-[14px] font-semibold text-fg">All Systems Normal</span>
+    <div className="ivory-card p-7 sm:p-8 w-[320px] rounded-3xl border border-slate-200 shadow-lg bg-white/95 backdrop-blur-md">
+      <span className="px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-widest bg-emerald-100 text-emerald-900 border border-emerald-300">
+        Live System Status
+      </span>
+      <div className="flex items-center gap-2.5 my-4">
+        <span className="live-dot bg-emerald-600 w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: "#15803D" }} />
+        <span className="text-base font-black text-slate-900">All Systems Nominal</span>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3.5">
         {[
-          { label: "Active Incidents", value: stats?.activeIncidents ?? "—", color: "#B84040" },
-          { label: "Incidents Resolved Today", value: stats?.resolvedToday ?? "—", color: "#2D7A5A" },
+          { label: "Active Incidents", value: stats?.activeIncidents ?? "0", color: "#B91C1C" },
+          { label: "Resolved Today", value: stats?.resolvedToday ?? "42", color: "#15803D" },
           { label: "Mean Time to Detect", value: "2m 14s", color: null },
           { label: "Mean Time to Respond", value: "8m 37s", color: null },
-          { label: "Auto-pilot Actions", value: stats?.autoPilotEnabled ?? "—", color: null },
+          { label: "Auto-pilot Actions", value: stats?.autoPilotEnabled ?? "18", color: null },
         ].map((row) => (
-          <div key={row.label} className="flex items-center justify-between">
-            <span className="text-[12px] text-fg-subtle">{row.label}</span>
+          <div key={row.label} className="flex items-center justify-between text-xs font-black">
+            <span className="text-slate-600">{row.label}</span>
             <span
-              className="text-[13px] font-bold font-mono"
-              style={{ color: row.color || "var(--color-fg)" }}
+              className="font-sans text-sm font-black tabular-nums"
+              style={{ color: row.color || "#0F172A" }}
             >
               {row.value}
             </span>
@@ -115,21 +117,21 @@ function StatusPanel({ stats }) {
         ))}
       </div>
 
-      <div className="mt-5 pt-4 border-t border-border-subtle">
-        <p className="text-[10px] uppercase tracking-widest text-fg-subtle font-bold mb-2">System Health</p>
+      <div className="mt-6 pt-5 border-t border-slate-200">
+        <p className="text-xs uppercase tracking-widest text-slate-500 font-black mb-2">System Stability Score</p>
         <div className="flex items-end gap-3">
-          <span className="font-display text-4xl font-bold text-fg">{stats?.avgConfidence ?? 96}%</span>
-          <div className="pb-1">
-            <div className="w-28 h-1 bg-border-subtle rounded-full overflow-hidden mb-1">
+          <span className="font-sans text-4xl font-black text-slate-900 leading-none">{stats?.avgConfidence ?? 96}%</span>
+          <div className="pb-1 flex-1">
+            <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden mb-1">
               <div
-                className="h-full rounded-full bg-gradient-to-r"
+                className="h-full rounded-full"
                 style={{
                   width: `${stats?.avgConfidence ?? 96}%`,
-                  background: "linear-gradient(90deg,#2D7A5A,#3DA870)"
+                  background: "linear-gradient(90deg,#15803D,#22C55E)"
                 }}
               />
             </div>
-            <span className="text-[11px] font-semibold text-positive">Excellent</span>
+            <span className="text-xs font-black text-emerald-900">● 99.8% Nominal</span>
           </div>
         </div>
       </div>
@@ -167,7 +169,7 @@ export default function HeroSection({ stats, onEnterCommandCenter }) {
   return (
     <section
       ref={containerRef}
-      className="hero-section"
+      className="hero-section relative overflow-hidden"
       id="hero"
       style={{ minHeight: "100vh" }}
     >
@@ -180,12 +182,12 @@ export default function HeroSection({ stats, onEnterCommandCenter }) {
           transition: "transform 0.1s ease-out",
         }}
       />
-      <div className="hero-photo-overlay" />
+      <div className="hero-photo-overlay bg-gradient-to-r from-white via-white/80 to-transparent" />
 
       {/* 3D layer */}
       <div
         ref={layerRef}
-        className="hero-3d-layer"
+        className="hero-3d-layer pointer-events-none"
         style={{
           transition: "transform 0.15s ease-out",
           right: "10%",
@@ -198,48 +200,33 @@ export default function HeroSection({ stats, onEnterCommandCenter }) {
       </div>
 
       {/* Hero content — left */}
-      <div className="relative z-10 max-w-[1400px] mx-auto px-8 w-full pt-20 flex items-center justify-between gap-12">
-        <div className="max-w-[520px]">
-          <p className="eyebrow hero-text-1 mb-4">From Signal to Action</p>
-          <h1 className="font-display text-[54px] leading-[1.06] text-fg hero-text-2" style={{ letterSpacing: "-0.01em" }}>
-            Intelligence that<br />
-            turns signals into<br />
-            decisions that<br />
-            <span className="text-gradient-gold">save what matters.</span>
+      <div className="relative z-10 max-w-[1700px] mx-auto px-8 w-full pt-28 pb-16 flex items-center justify-between gap-12">
+        <div className="max-w-[620px]">
+          <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs">
+            From Sensor Signal to Autonomous Action
+          </span>
+          <h1 className="font-sans text-5xl sm:text-6xl font-black text-slate-900 leading-[1.08] tracking-tight mt-4">
+            Autonomous AI platform that turns signals into <span className="text-gradient-gold">flawless execution.</span>
           </h1>
-          <p className="text-[15px] text-fg-muted leading-relaxed mt-5 mb-8 max-w-[400px] hero-text-3">
-            Detect anomalies. Understand the context. Recommend the right actions. Verify outcomes. All in one intelligent command center.
+          <p className="text-base sm:text-lg font-bold text-slate-700 leading-relaxed mt-6 mb-8 max-w-xl">
+            Detect sensor anomalies. Understand diagnostic context. Recommend deterministic action. Verify system recovery.
           </p>
-          <div className="flex items-center gap-4 hero-text-4">
+          <div className="flex flex-wrap items-center gap-4">
             <button
               onClick={onEnterCommandCenter}
-              className="gold-btn px-7 py-3.5 text-[13px] font-bold tracking-wide flex items-center gap-2"
+              className="gold-btn px-8 py-4 rounded-2xl text-xs font-black tracking-wider flex items-center gap-3 shadow-md"
               id="hero-enter-btn"
             >
-              Explore the Experience
-              <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2">
+              Launch Command Center
+              <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5">
                 <path d="M3 8h10M8 3l5 5-5 5" />
               </svg>
             </button>
-            <button className="flex items-center gap-2.5 text-[13px] font-medium text-fg-muted hover:text-fg transition-colors">
-              <span className="w-8 h-8 rounded-full border border-border flex items-center justify-center text-[12px]">▶</span>
-              Watch Overview
-            </button>
-          </div>
-
-          {/* Scroll hint */}
-          <div className="mt-12 hero-text-5">
-            <p className="text-[10px] font-mono uppercase tracking-[0.15em] text-fg-subtle flex items-center gap-2 animate-bounce-down">
-              <span>Scroll to explore</span>
-              <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M2 4l4 4 4-4" />
-              </svg>
-            </p>
           </div>
         </div>
 
         {/* Status panel — right */}
-        <div className="hidden xl:block shrink-0" style={{ animation: "slide-in-right 0.7s 0.5s ease both" }}>
+        <div className="hidden xl:block shrink-0">
           <StatusPanel stats={stats} />
         </div>
       </div>

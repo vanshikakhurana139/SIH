@@ -40,26 +40,28 @@ export default function IncidentImpact({ incident }) {
   const chartData = history.length ? history : [{ t: 0, cost: 0 }];
 
   return (
-    <div className="ivory-card p-5">
-      <div className="flex items-center justify-between mb-1">
-        <p className="dash-eyebrow">Incident Impact</p>
+    <div className="ivory-card p-6 sm:p-7 rounded-3xl border border-slate-200/80 shadow-sm bg-white/90">
+      <div className="flex items-center justify-between mb-4">
+        <span className="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest bg-rose-50 text-rose-700 border border-rose-200/80">
+          Financial & System Impact
+        </span>
         <span
-          className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border"
+          className="text-xs font-mono font-extrabold px-3 py-1 rounded-full border"
           style={isActive
-            ? { background: "rgba(184,64,64,0.08)", color: "#B84040", borderColor: "rgba(184,64,64,0.22)" }
-            : { background: "rgba(45,122,90,0.08)", color: "#2D7A5A", borderColor: "rgba(45,122,90,0.22)" }}
+            ? { background: "rgba(184,64,64,0.08)", color: "#B84040", borderColor: "rgba(184,64,64,0.25)" }
+            : { background: "rgba(45,122,90,0.08)", color: "#2D7A5A", borderColor: "rgba(45,122,90,0.25)" }}
         >
-          {isActive ? "⚡ CLIMBING" : "STOPPED"}
+          {isActive ? "⚡ ACCUMULATING" : "STABILIZED"}
         </span>
       </div>
 
-      <p className="text-[32px] font-black font-display text-gradient-danger tabular-nums leading-none my-3">
+      <p className="text-4xl sm:text-5xl font-black font-display text-rose-700 tabular-nums leading-none my-4 tracking-tight">
         ${cost.toLocaleString()}
       </p>
-      <p className="text-[11px] text-fg-subtle mb-3">Estimated Exposure</p>
+      <p className="text-xs font-bold text-slate-500 mb-4">Estimated Exposure Risk</p>
 
       {/* Sparkline */}
-      <div className="h-14 -mx-1">
+      <div className="h-20 -mx-1">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData}>
             <defs>
@@ -69,14 +71,14 @@ export default function IncidentImpact({ incident }) {
               </linearGradient>
             </defs>
             <YAxis hide domain={["auto", "auto"]} />
-            <Area type="monotone" dataKey="cost" stroke="#B84040" strokeWidth={2} fill="url(#impactFill)" isAnimationActive={false} />
+            <Area type="monotone" dataKey="cost" stroke="#B84040" strokeWidth={2.5} fill="url(#impactFill)" isAnimationActive={false} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="flex items-center justify-between mt-2 text-[11px]">
-        <span className="text-fg-subtle">{isActive ? `${elapsed}s unresolved` : "Resolved"}</span>
-        <span className="font-mono font-bold" style={{ color: "#B84040" }}>+${rate}/sec</span>
+      <div className="flex items-center justify-between mt-3 text-xs font-bold border-t border-slate-100 pt-3">
+        <span className="text-slate-500">{isActive ? `${elapsed}s elapsed` : "Incident resolved"}</span>
+        <span className="font-mono text-rose-700">+${rate}/sec burn</span>
       </div>
     </div>
   );

@@ -67,19 +67,4 @@ export default function ArchitectureStrip({ activeStep = 1 }) {
       </div>
     </div>
   );
-}
-
-export function statusToStep(status) {
-  switch (status) {
-    case "diagnosed":
-      return 3;
-    case "resolved":
-    case "failed":
-      return 6;
-    case "rejected":
-    case "undone":
-      return 4;
-    default:
-      return 1; // no active incident — idle at Sensor Data
-  }
-}
+}

@@ -11,7 +11,7 @@ const SCENARIO_POINTS = {
   ],
 };
 
-export default function ControlBar({ onSimulate, scenario, onSwitchScenario }) {
+export default function ControlBar({ onSimulate, scenario }) {
   const points = SCENARIO_POINTS[scenario];
   return (
     <div className="mb-6 bg-surface-raised border border-border-subtle rounded-2xl px-4 py-3 flex flex-wrap items-center gap-3">

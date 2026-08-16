@@ -16,9 +16,9 @@ export default function RecommendedResponse({ incident, onApprove, onReject, onM
 
   if (!incident) {
     return (
-      <div className="ivory-card p-6 text-center" style={{ minHeight: 180 }}>
-        <p className="text-[13px] font-semibold text-fg-muted">No recommendation available</p>
-        <p className="text-[11px] text-fg-subtle mt-1">Trigger an incident to see the AI recommendation</p>
+      <div className="ivory-card p-8 rounded-3xl border border-slate-200/80 shadow-sm bg-white/90 text-center min-h-[200px] flex flex-col items-center justify-center">
+        <p className="text-base font-bold text-slate-800">No Recommendation Available</p>
+        <p className="text-xs text-slate-500 mt-1">Trigger an incident from the control panel to view AI recommendation</p>
       </div>
     );
   }
@@ -33,44 +33,49 @@ export default function RecommendedResponse({ incident, onApprove, onReject, onM
   }
 
   return (
-    <div className="ivory-card overflow-hidden">
-      <div className="p-5 border-b border-border-subtle">
-        <p className="dash-eyebrow mb-3">Recommended Response</p>
+    <div className="ivory-card rounded-3xl border border-slate-200/80 shadow-sm bg-white/90 overflow-hidden">
+      <div className="p-6 sm:p-7 border-b border-slate-100">
+        <div className="flex items-center justify-between mb-4">
+          <span className="px-3.5 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+            Recommended Action
+          </span>
+          <span className="text-xs font-mono font-bold text-slate-400">PRIORITY RESPONSE</span>
+        </div>
 
         {/* Action text */}
         <div
-          className="rounded-xl p-4 mb-4"
-          style={{ background: "rgba(184,150,62,0.06)", border: "1px solid rgba(184,150,62,0.15)" }}
+          className="rounded-2xl p-4.5 mb-5 border-l-4 shadow-2xs"
+          style={{ background: "rgba(184,150,62,0.06)", borderColor: "#B8963E" }}
         >
-          <p className="text-[13px] text-fg font-medium leading-relaxed">
+          <p className="text-base text-slate-900 font-bold leading-relaxed">
             {incident.recommended_action}
           </p>
         </div>
 
         {/* Impact metrics */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-3 mb-5">
           {[
-            { label: "Risk Reduction", value: "82%",       color: "#2D7A5A" },
-            { label: "Recovery Window", value: "12–18 min", color: "var(--color-fg-muted)" },
-            { label: "Exposure Avoided", value: "$8,400",   color: "#2D7A5A" },
+            { label: "Risk Reduction", value: "82%", color: "#2D7A5A" },
+            { label: "Recovery Window", value: "12–18 min", color: "#475569" },
+            { label: "Exposure Avoided", value: "$8,400", color: "#2D7A5A" },
           ].map(({ label, value, color }) => (
-            <div key={label} className="text-center rounded-xl py-2.5 px-2" style={{ background: "rgba(26,22,18,0.03)", border: "1px solid rgba(180,160,120,0.10)" }}>
-              <p className="text-[9px] uppercase tracking-wider font-bold text-fg-subtle mb-1">{label}</p>
-              <p className="text-[13px] font-bold font-mono" style={{ color }}>{value}</p>
+            <div key={label} className="text-center rounded-2xl py-3 px-2 bg-slate-50/80 border border-slate-200/70">
+              <p className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 mb-1">{label}</p>
+              <p className="text-sm font-bold font-mono" style={{ color }}>{value}</p>
             </div>
           ))}
         </div>
 
         {/* Crystal Ball */}
         {incident.crystal_ball && (
-          <div className="space-y-1.5 mb-4">
-            <div className="flex items-start gap-2 text-[11px]">
-              <span className="text-positive font-bold shrink-0" style={{ color: "#2D7A5A" }}>✓ If approved:</span>
-              <span className="text-fg-muted">{incident.crystal_ball.if_approved}</span>
+          <div className="space-y-2 mb-2 p-4 rounded-2xl bg-slate-50/60 border border-slate-200/60">
+            <div className="flex items-start gap-2.5 text-xs font-medium">
+              <span className="text-emerald-700 font-extrabold shrink-0">✓ If Approved:</span>
+              <span className="text-slate-700 font-semibold">{incident.crystal_ball.if_approved}</span>
             </div>
-            <div className="flex items-start gap-2 text-[11px]">
-              <span className="font-bold shrink-0" style={{ color: "#B84040" }}>⚠ If ignored:</span>
-              <span className="text-fg-muted">{incident.crystal_ball.if_ignored}</span>
+            <div className="flex items-start gap-2.5 text-xs font-medium">
+              <span className="font-extrabold shrink-0 text-rose-700">⚠ If Ignored:</span>
+              <span className="text-slate-700 font-semibold">{incident.crystal_ball.if_ignored}</span>
             </div>
           </div>
         )}
@@ -78,83 +83,82 @@ export default function RecommendedResponse({ incident, onApprove, onReject, onM
 
       {/* Action bar */}
       {isPending && !showModify && (
-        <div className="flex items-center gap-2 p-4 bg-white/60">
+        <div className="flex flex-wrap items-center gap-3 p-5 bg-slate-50/80 border-t border-slate-100">
           <button
             onClick={handleApprove}
             id="action-approve"
-            className="flex-1 py-2.5 px-4 rounded-xl text-[12px] font-bold text-white transition-all flex items-center justify-center gap-2"
+            className="flex-1 py-3.5 px-5 rounded-2xl text-sm font-extrabold text-white transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md"
             style={{
               background: needsConfirm && !confirmedOnce
                 ? "linear-gradient(135deg,#B84040,#D45050)"
                 : "linear-gradient(135deg,#B8963E,#D4AF70)",
               boxShadow: needsConfirm && !confirmedOnce
-                ? "0 3px 12px rgba(184,64,64,0.30)"
-                : "0 3px 12px rgba(184,150,62,0.30)",
+                ? "0 4px 14px rgba(184,64,64,0.30)"
+                : "0 4px 14px rgba(184,150,62,0.30)",
             }}
           >
-            {needsConfirm && !confirmedOnce ? "⚠ Confirm — High Risk Action" : "Execute Response"}
-            <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" strokeWidth="2">
+            {needsConfirm && !confirmedOnce ? "⚠ Confirm High-Risk Action" : "Execute AI Response"}
+            <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2.2">
               <path d="M3 8h10M8 3l5 5-5 5" />
             </svg>
           </button>
-          <button
-            onClick={() => { setShowEvidence(!showEvidence); }}
-            id="action-evidence"
-            className="px-3 py-2.5 rounded-xl text-[12px] font-bold border border-border-subtle bg-white/80 hover:bg-white text-fg-muted hover:text-fg transition-all"
-          >
-            View Evidence
-          </button>
-          <button
-            onClick={() => setShowModify(true)}
-            id="action-modify"
-            className="px-3 py-2.5 rounded-xl text-[12px] font-bold border border-border-subtle bg-white/80 hover:bg-white text-fg-muted hover:text-fg transition-all"
-          >
-            Modify
-          </button>
-          <button
-            onClick={() => onReject(incident.id)}
-            id="action-reject"
-            className="px-3 py-2.5 rounded-xl text-[12px] font-bold border border-critical/25 bg-critical/5 hover:bg-critical/10 transition-all"
-            style={{ color: "#B84040", borderColor: "rgba(184,64,64,0.25)" }}
-          >
-            Reject
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              onClick={() => { setShowEvidence(!showEvidence); }}
+              id="action-evidence"
+              className="px-4 py-3 rounded-2xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all shadow-2xs"
+            >
+              Evidence
+            </button>
+            <button
+              onClick={() => setShowModify(true)}
+              id="action-modify"
+              className="px-4 py-3 rounded-2xl text-xs font-bold border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 transition-all shadow-2xs"
+            >
+              Modify
+            </button>
+            <button
+              onClick={() => onReject(incident.id)}
+              id="action-reject"
+              className="px-4 py-3 rounded-2xl text-xs font-bold border border-rose-200 bg-rose-50/80 hover:bg-rose-100 text-rose-700 transition-all shadow-2xs"
+            >
+              Reject
+            </button>
+          </div>
         </div>
       )}
 
       {showModify && (
-        <div className="p-4 bg-white/60 space-y-3">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-fg-subtle">Modify Action</p>
+        <div className="p-5 bg-slate-50/80 space-y-3 border-t border-slate-100">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-slate-400">Modify Recommended Action</p>
           <textarea
-            className="w-full bg-white border border-border-subtle rounded-xl p-3 text-[12px] text-fg font-mono focus:outline-none focus:border-gold transition-all"
-            style={{ "--tw-ring-color": "rgba(184,150,62,0.2)" }}
+            className="w-full bg-white border border-slate-200 rounded-2xl p-4 text-xs font-semibold text-slate-900 font-mono focus:outline-none focus:border-amber-500 shadow-2xs"
             rows={3}
             value={modifiedAction}
             onChange={(e) => setModifiedAction(e.target.value)}
           />
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <button
               onClick={() => { setShowModify(false); onModify(incident.id, modifiedAction); }}
-              className="flex-1 gold-btn py-2 text-[12px] font-bold"
-            >Submit</button>
+              className="flex-1 gold-btn py-2.5 text-xs font-extrabold rounded-2xl"
+            >Submit Modification</button>
             <button
               onClick={() => setShowModify(false)}
-              className="px-4 py-2 rounded-xl text-[12px] font-bold border border-border-subtle bg-white text-fg-muted"
+              className="px-4 py-2.5 rounded-2xl text-xs font-bold border border-slate-200 bg-white text-slate-600"
             >Cancel</button>
           </div>
         </div>
       )}
 
       {!isPending && !showModify && (
-        <div className="px-5 py-3 bg-white/50 flex items-center justify-between">
-          <p className="text-[11px] font-mono text-fg-muted">
-            Decision: <span className="font-bold" style={{ color: "var(--color-gold)" }}>{status.toUpperCase()}</span>
+        <div className="px-6 py-4 bg-slate-50/80 flex items-center justify-between border-t border-slate-100">
+          <p className="text-xs font-mono text-slate-600">
+            Status: <span className="font-extrabold text-amber-700">{status.toUpperCase()}</span>
           </p>
           {(status === "resolved" || status === "failed") && incident.reversible && (
             <button
               onClick={() => onUndo(incident.id)}
-              className="text-[11px] font-bold border border-border-subtle px-3 py-1 rounded-xl hover:bg-red-50 transition-all"
-              style={{ color: "#B84040", borderColor: "rgba(184,64,64,0.25)" }}
+              className="text-xs font-bold border border-rose-200 px-4 py-2 rounded-2xl hover:bg-rose-50 transition-all text-rose-700"
             >
               Undo Action
             </button>
@@ -164,11 +168,11 @@ export default function RecommendedResponse({ incident, onApprove, onReject, onM
 
       {/* Evidence expand */}
       {showEvidence && incident.rollback_plan && (
-        <div className="px-5 py-4 border-t border-border-subtle bg-ivory/50">
-          <p className="text-[9px] font-bold uppercase tracking-widest text-fg-subtle mb-2">Rollback Strategy</p>
-          <ul className="space-y-1">
+        <div className="px-6 py-5 border-t border-slate-200/80 bg-slate-50/50">
+          <p className="text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-3">Rollback Strategy</p>
+          <ul className="space-y-2">
             {incident.rollback_plan.map((step, i) => (
-              <li key={i} className="text-[11px] text-fg-muted pl-3 border-l-2 border-positive/40 font-mono" style={{ borderColor: "rgba(45,122,90,0.4)" }}>
+              <li key={i} className="text-xs text-slate-700 pl-3 border-l-2 border-emerald-500/60 font-mono font-semibold">
                 {step}
               </li>
             ))}

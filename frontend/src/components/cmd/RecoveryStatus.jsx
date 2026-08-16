@@ -6,53 +6,60 @@ export default function RecoveryStatus({ healthCheck }) {
   const pct = total ? Math.round((resolved / total) * 100) : 0;
 
   const segments = [
-    { label: "Resolved", value: resolved, color: "#2D7A5A" },
-    { label: "Pending",  value: pending,  color: "#B07B2E" },
-    { label: "Failed",   value: failed,   color: "#B84040" },
+    { label: "Resolved", value: resolved, color: "#15803D" },
+    { label: "Pending",  value: pending,  color: "#B45309" },
+    { label: "Failed",   value: failed,   color: "#B91C1C" },
   ];
 
   return (
-    <div className="ivory-card p-5">
-      <p className="dash-eyebrow mb-4">Recovery Status</p>
+    <div className="ivory-card p-6 sm:p-7 rounded-3xl border border-slate-200/90 shadow-sm bg-white/95">
+      <div className="flex items-center justify-between mb-5">
+        <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-emerald-100/90 text-emerald-900 border border-emerald-300 shadow-2xs">
+          System Recovery Status
+        </span>
+        <span className="text-xs font-black text-slate-600 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">HEALTH CYCLE</span>
+      </div>
 
       {/* Arc gauge */}
-      <div className="flex items-center gap-5 mb-4">
+      <div className="flex items-center gap-6 mb-5 p-5 rounded-2xl bg-slate-50 border border-slate-200">
         <div className="relative shrink-0">
-          <svg viewBox="0 0 80 80" width="72" height="72">
+          <svg viewBox="0 0 90 90" width="88" height="88">
             {/* Track */}
-            <circle cx="40" cy="40" r="30" fill="none" stroke="rgba(180,160,120,0.15)" strokeWidth="7" />
+            <circle cx="45" cy="45" r="35" fill="none" stroke="rgba(203,213,225,0.8)" strokeWidth="8" />
             {/* Progress */}
             <circle
-              cx="40" cy="40" r="30"
+              cx="45" cy="45" r="35"
               fill="none"
-              stroke={pct >= 80 ? "#2D7A5A" : pct >= 50 ? "#B07B2E" : "#B84040"}
-              strokeWidth="7"
+              stroke={pct >= 80 ? "#15803D" : pct >= 50 ? "#B45309" : "#B91C1C"}
+              strokeWidth="8"
               strokeLinecap="round"
-              strokeDasharray={`${(pct / 100) * 188} 188`}
-              transform="rotate(-90 40 40)"
+              strokeDasharray={`${(pct / 100) * 220} 220`}
+              transform="rotate(-90 45 45)"
               style={{ transition: "stroke-dasharray 0.8s ease" }}
             />
-            <text x="40" y="44" textAnchor="middle" fontSize="14" fontWeight="800" fontFamily="monospace" fill="#1A1612">
+            <text x="45" y="52" textAnchor="middle" fontSize="18" fontWeight="900" fontFamily="sans-serif" fill="#0F172A">
               {pct}%
             </text>
           </svg>
         </div>
 
         <div>
-          <p className="text-[26px] font-black font-display text-fg tabular-nums leading-none">{resolved}<span className="text-[14px] text-fg-subtle font-semibold ml-1">/ {total}</span></p>
-          <p className="text-[11px] text-fg-subtle mt-0.5">checks resolved</p>
+          <p className="text-3xl sm:text-4xl font-black font-sans text-slate-900 tabular-nums leading-none tracking-tight">
+            {resolved}<span className="text-lg text-slate-600 font-bold ml-1">/ {total}</span>
+          </p>
+          <p className="text-xs font-extrabold text-slate-700 mt-1">Health Checks Resolved</p>
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         {segments.map((s) => (
-          <div key={s.label} className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
-              <span className="text-[12px] text-fg-muted font-medium">{s.label}</span>
+          <div key={s.label} className="flex items-center justify-between py-1">
+            <div className="flex items-center gap-2.5">
+              <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+              <span className="text-xs text-slate-900 font-black">{s.label}</span>
             </div>
-            <div className="flex items-center gap-3">
-              <div className="w-20 h-1.5 bg-border-subtle rounded-full overflow-hidden">
+            <div className="flex items-center gap-4">
+              <div className="w-28 h-2.5 bg-slate-200 rounded-full overflow-hidden">
                 <div
                   className="h-full rounded-full"
                   style={{
@@ -62,7 +69,7 @@ export default function RecoveryStatus({ healthCheck }) {
                   }}
                 />
               </div>
-              <span className="font-mono text-[12px] font-bold text-fg tabular-nums w-6 text-right">{s.value}</span>
+              <span className="font-sans text-xs font-black text-slate-900 tabular-nums w-6 text-right">{s.value}</span>
             </div>
           </div>
         ))}

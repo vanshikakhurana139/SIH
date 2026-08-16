@@ -1,43 +1,43 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..900;1,300..900&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&family=DM+Serif+Display:ital@0;1&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "DM Serif Display", Georgia, serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", "Plus Jakarta Sans", ui-monospace, "SFMono-Regular", monospace;
 
-  /* ─── Ivory/Beige/Gold palette ─── */
-  --color-ivory:          #FAF8F4;
-  --color-ivory-dark:     #F2EDE4;
+  /* ─── High-Contrast Palette ─── */
+  --color-ivory:          #FAF9F5;
+  --color-ivory-dark:     #F4F1EA;
   --color-surface:        #FFFFFF;
-  --color-surface-warm:   rgba(250,248,244,0.88);
-  --color-surface-raised: rgba(255,255,255,0.95);
-  --color-border:         rgba(180,160,120,0.18);
-  --color-border-subtle:  rgba(180,160,120,0.11);
-  --color-border-strong:  rgba(180,160,120,0.32);
+  --color-surface-warm:   rgba(255,255,255,0.95);
+  --color-surface-raised: #FFFFFF;
+  --color-border:         rgba(203,213,225,0.8);
+  --color-border-subtle:  rgba(226,232,240,0.8);
+  --color-border-strong:  rgba(148,163,184,0.8);
 
-  --color-fg:             #1A1612;
-  --color-fg-muted:       #5C5043;
-  --color-fg-subtle:      #9A8F84;
+  --color-fg:             #0F172A;
+  --color-fg-muted:       #334155;
+  --color-fg-subtle:      #475569;
 
   --color-gold:           #B8963E;
   --color-gold-light:     #D4AF70;
   --color-gold-pale:      #F0E4C4;
 
-  --color-positive:       #2D7A5A;
-  --color-warning:        #B07B2E;
-  --color-critical:       #B84040;
+  --color-positive:       #15803D;
+  --color-warning:        #B45309;
+  --color-critical:       #B91C1C;
 
-  /* Keep old accent names mapped to gold so existing components don't break */
+  /* Keep old accent names mapped to gold */
   --color-accent:         #B8963E;
   --color-accent-light:   #D4AF70;
-  --color-ink:            #FAF8F4;
+  --color-ink:            #FAF9F5;
 
   /* Severity */
-  --color-severity-low:      #2D6A9E;
-  --color-severity-medium:   #B07B2E;
-  --color-severity-high:     #C0562A;
-  --color-severity-critical: #B84040;
+  --color-severity-low:      #1D4ED8;
+  --color-severity-medium:   #B45309;
+  --color-severity-high:     #C2410C;
+  --color-severity-critical: #B91C1C;
 }
 
 html { color-scheme: light; }

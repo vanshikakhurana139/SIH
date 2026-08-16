@@ -7,7 +7,7 @@ function Clock() {
     return () => clearInterval(t);
   }, []);
   return (
-    <span className="font-mono text-[12px] font-semibold text-fg-muted tabular-nums">
+    <span className="font-mono text-xs sm:text-sm font-bold text-slate-700 tabular-nums">
       {now.toLocaleTimeString("en-US", { hour12: false, hour: "2-digit", minute: "2-digit" })} {now.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).toUpperCase()}
     </span>
   );
@@ -15,29 +15,29 @@ function Clock() {
 
 export default function CmdHeader({ scenario, onSwitchScenario }) {
   return (
-    <header className="header-glass flex items-center justify-between px-6 py-3 shrink-0 z-20">
+    <header className="header-glass flex items-center justify-between px-6 sm:px-8 py-4 shrink-0 z-20 border-b border-slate-200/80 bg-white/95">
       {/* Left */}
-      <div className="flex items-center gap-5">
-        <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
           <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-[13px] shrink-0"
-            style={{ background: "linear-gradient(135deg,#B8963E,#D4AF70)", boxShadow: "0 2px 8px rgba(184,150,62,0.30)" }}
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-base shrink-0 shadow-sm"
+            style={{ background: "linear-gradient(135deg,#B8963E,#D4AF70)" }}
           >
             S
           </div>
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-fg leading-tight">AI Incident Orchestration</p>
-            <p className="text-[9px] uppercase tracking-[0.12em] font-bold text-gold" style={{ color: "var(--color-gold)" }}>Command Center</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-900 leading-tight">AI Incident Orchestration</p>
+            <p className="text-[11px] uppercase tracking-[0.14em] font-extrabold text-amber-700">Command Center</p>
           </div>
         </div>
 
-        <div className="w-px h-8 bg-border-subtle" />
+        <div className="hidden md:block w-px h-9 bg-slate-200" />
 
         {/* Scenario toggle */}
-        <div className="flex items-center bg-white/60 rounded-xl p-1 gap-0.5 border border-border-subtle shadow-sm">
+        <div className="flex items-center bg-slate-100/90 rounded-2xl p-1 gap-1 border border-slate-200/80 shadow-2xs">
           {[
-            { id: "powerplant", label: "Power Plant" },
-            { id: "hospital",   label: "Hospital" },
+            { id: "powerplant", label: "⚡ Power Plant" },
+            { id: "hospital",   label: "🏥 Hospital ICU" },
           ].map(({ id, label }) => {
             const active = scenario === id;
             return (
@@ -45,10 +45,10 @@ export default function CmdHeader({ scenario, onSwitchScenario }) {
                 key={id}
                 id={`scenario-${id}`}
                 onClick={() => onSwitchScenario(id)}
-                className="px-4 py-1.5 rounded-[10px] text-[11px] font-bold uppercase tracking-wider transition-all duration-200"
+                className="px-4 sm:px-5 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200"
                 style={active
-                  ? { background: "linear-gradient(135deg,#B8963E,#D4AF70)", color: "#fff", boxShadow: "0 2px 8px rgba(184,150,62,0.30)" }
-                  : { color: "var(--color-fg-muted)" }
+                  ? { background: "linear-gradient(135deg,#B8963E,#D4AF70)", color: "#fff", boxShadow: "0 3px 10px rgba(184,150,62,0.35)" }
+                  : { color: "#475569" }
                 }
               >
                 {label}
@@ -59,35 +59,35 @@ export default function CmdHeader({ scenario, onSwitchScenario }) {
       </div>
 
       {/* Right */}
-      <div className="flex items-center gap-4">
-        {/* System status */}
-        <div className="flex items-center gap-2">
-          <span className="live-dot flex-shrink-0" style={{ backgroundColor: "#2D7A5A", width: 8, height: 8, borderRadius: "50%", display: "inline-block" }} />
-          <span className="text-[11px] font-bold text-fg font-mono">SYSTEM NOMINAL</span>
+      <div className="flex items-center gap-5">
+        {/* System status pill */}
+        <div className="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
+          <span className="live-dot flex-shrink-0" style={{ backgroundColor: "#2D7A5A", width: 9, height: 9, borderRadius: "50%", display: "inline-block" }} />
+          <span className="text-xs font-extrabold font-mono tracking-wider">SYSTEM NOMINAL</span>
         </div>
 
-        <div className="w-px h-7 bg-border-subtle" />
+        <div className="hidden sm:block w-px h-8 bg-slate-200" />
 
         <Clock />
 
-        <div className="w-px h-7 bg-border-subtle" />
+        <div className="hidden sm:block w-px h-8 bg-slate-200" />
 
         {/* Actions */}
-        <div className="flex items-center gap-1.5">
-          <button className="relative flex items-center justify-center w-8 h-8 rounded-xl border border-border-subtle bg-white/70 hover:bg-white transition-all text-fg-muted hover:text-fg">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.7">
+        <div className="flex items-center gap-2">
+          <button className="relative flex items-center justify-center w-9 h-9 rounded-2xl border border-slate-200/80 bg-slate-50 hover:bg-white transition-all text-slate-600 hover:text-slate-900 shadow-2xs">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" />
               <path d="M10 20a2 2 0 0 0 4 0" />
             </svg>
-            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-gold border border-white" style={{ backgroundColor: "#B8963E" }} />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 border border-white" />
           </button>
-          <button className="flex items-center justify-center w-8 h-8 rounded-xl border border-border-subtle bg-white/70 hover:bg-white transition-all text-fg-muted hover:text-fg text-[12px] font-bold">
+          <button className="flex items-center justify-center w-9 h-9 rounded-2xl border border-slate-200/80 bg-slate-50 hover:bg-white transition-all text-slate-600 hover:text-slate-900 text-xs font-bold shadow-2xs">
             ?
           </button>
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-xl border border-border-subtle bg-white/70 hover:bg-white transition-all">
-            <div className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold" style={{ background: "linear-gradient(135deg,#B8963E,#D4AF70)" }}>A</div>
-            <span className="text-[12px] font-semibold text-fg-muted">Operator</span>
-            <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-fg-subtle">
+          <button className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border border-slate-200/80 bg-slate-50 hover:bg-white transition-all shadow-2xs">
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-extrabold" style={{ background: "linear-gradient(135deg,#B8963E,#D4AF70)" }}>A</div>
+            <span className="text-xs font-extrabold text-slate-700">Operator</span>
+            <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400">
               <path d="M2 4l4 4 4-4" />
             </svg>
           </button>

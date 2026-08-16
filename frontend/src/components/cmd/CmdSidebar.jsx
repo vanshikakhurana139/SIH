@@ -69,17 +69,17 @@ export default function CmdSidebar({ activeTab, onTabChange }) {
 
   return (
     <aside
-      className="cmd-sidebar relative"
+      className="cmd-sidebar relative bg-white/95 border-r border-slate-200 shadow-sm"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       role="navigation"
       aria-label="Command Center Navigation"
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5 mb-4 shrink-0">
+      <div className="flex items-center gap-3 px-4 py-6 mb-4 shrink-0">
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-[15px] shrink-0"
-          style={{ background: "linear-gradient(135deg, #B8963E, #D4AF70)", boxShadow: "0 3px 12px rgba(184,150,62,0.35)", minWidth: "36px" }}
+          className="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-black text-lg shrink-0 shadow-md"
+          style={{ background: "linear-gradient(135deg, #B8963E, #D4AF70)", minWidth: "40px" }}
         >
           S
         </div>
@@ -87,13 +87,13 @@ export default function CmdSidebar({ activeTab, onTabChange }) {
           className="whitespace-nowrap overflow-hidden"
           style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.2s ease 0.05s" }}
         >
-          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-fg leading-tight">Sentinel</p>
-          <p className="text-[8px] uppercase tracking-[0.1em] text-fg-subtle font-semibold">Command Center</p>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-900 leading-tight">Sentinel</p>
+          <p className="text-[10px] uppercase tracking-widest text-slate-500 font-extrabold">Command Platform</p>
         </div>
       </div>
 
       {/* Nav items */}
-      <nav className="flex flex-col flex-1 px-2">
+      <nav className="flex flex-col flex-1 px-2.5 space-y-1">
         {NAV.map(({ id, label, Icon }) => {
           const active = activeTab === id;
           return (
@@ -102,12 +102,16 @@ export default function CmdSidebar({ activeTab, onTabChange }) {
               id={`sidebar-${id}`}
               onClick={() => onTabChange(id)}
               title={label}
-              className={`cmd-sidebar-item relative ${active ? "active" : ""}`}
+              className={`cmd-sidebar-item relative flex items-center gap-3 px-4 py-3 rounded-2xl transition-all ${
+                active
+                  ? "bg-amber-100/90 text-amber-900 font-black shadow-2xs border border-amber-300"
+                  : "text-slate-700 hover:bg-slate-100 font-extrabold"
+              }`}
             >
               {active && <span className="sidebar-indicator" />}
-              <Icon size={18} />
+              <Icon size={20} />
               <span
-                className="whitespace-nowrap overflow-hidden text-[13px]"
+                className="whitespace-nowrap overflow-hidden text-sm"
                 style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.15s ease" }}
               >
                 {label}
@@ -119,10 +123,10 @@ export default function CmdSidebar({ activeTab, onTabChange }) {
 
       {/* Version */}
       <div
-        className="px-4 pb-4 whitespace-nowrap overflow-hidden"
+        className="px-4 pb-5 whitespace-nowrap overflow-hidden"
         style={{ opacity: hovered ? 1 : 0, transition: "opacity 0.2s ease" }}
       >
-        <p className="text-[9px] font-mono text-fg-subtle/50">v0.4 · Sentinel AI</p>
+        <p className="text-xs font-black font-mono text-slate-500">v0.4 · Sentinel AI</p>
       </div>
     </aside>
   );
