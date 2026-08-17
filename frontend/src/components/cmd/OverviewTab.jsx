@@ -21,6 +21,10 @@ function ActiveIncidentHero({ incident }) {
   if (!incident) {
     return (
       <div className="mb-2 p-6 sm:p-8 rounded-3xl bg-white/90 border border-slate-200/80 shadow-sm relative overflow-hidden">
+        <div className="text-xs font-semibold text-slate-500 mb-3 flex items-center gap-1.5">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+          Click on a Simulation in Config panel for Demo
+        </div>
         <div className="flex items-center gap-2 mb-3">
           <span className="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest bg-emerald-500/10 text-emerald-700 border border-emerald-500/20">
             System Telemetry Status
