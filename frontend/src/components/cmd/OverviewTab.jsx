@@ -3,8 +3,6 @@ import LiveSignals from "./LiveSignals";
 import AiInterpretation from "./AiInterpretation";
 import RecommendedResponse from "./RecommendedResponse";
 import IncidentImpact from "./IncidentImpact";
-import RecoveryStatus from "./RecoveryStatus";
-import SystemGuardrailsLog from "./SystemGuardrailsLog";
 import AskSystemChat from "../AskSystemChat";
 import TrustScorePanel from "../TrustScorePanel";
 import StatCards from "../StatCards";
@@ -141,10 +139,8 @@ export default function OverviewTab({
                 onModify={onModify}
                 onUndo={onUndo}
               />
-              <RecoveryStatus healthCheck={healthCheck} />
               <TrustScorePanel trustScores={trustScores} />
               <IncidentImpact incident={activeIncident} scenario={scenario} />
-              <SystemGuardrailsLog />
             </div>
           </div>
 

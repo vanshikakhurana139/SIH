@@ -82,7 +82,7 @@ export default function StatCards({ stats }) {
   if (!stats) return null;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-3 gap-6">
       <StatCard
         id="spark1"
         label="Active Incidents"
@@ -113,16 +113,6 @@ export default function StatCards({ stats }) {
         trend={2.4}
         trendLabel="vs yesterday"
         cardClass="stat-card-blue"
-      />
-      <StatCard
-        id="spark4"
-        label="Auto-Pilot Types"
-        value={stats.autoPilotEnabled ?? 0}
-        icon={IconBolt}
-        tint="#748FFC"
-        trend={null}
-        trendLabel="Active across systems"
-        cardClass="stat-card-violet"
       />
     </div>
   );

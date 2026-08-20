@@ -273,9 +273,6 @@ export default function App() {
               <ConfigTab scenario={scenario} onSimulate={handleSimulate} />
             )}
           </div>
-
-          {/* Process indicator strip */}
-          <ProcessIndicator activeStep={currentStep} />
         </div>
       </div>
     </div>

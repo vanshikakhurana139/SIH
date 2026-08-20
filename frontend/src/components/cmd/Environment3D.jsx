@@ -84,23 +84,6 @@ export default function Environment3D({ scenario = "powerplant", incident }) {
 
   return (
     <div className="ivory-card overflow-hidden relative rounded-3xl border border-slate-200/80 shadow-sm" style={{ minHeight: 480 }}>
-      {/* Controls bar */}
-      <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
-        {[
-          { label: "Reset Rotation", action: () => setRotation({ x: 0, y: 0 }) },
-          { label: "Toggle Zoom",   action: () => setZoom((z) => z === 1 ? 1.25 : 1) },
-          { label: "Center Focus",  action: () => { setRotation({ x: 0, y: 0 }); setZoom(1); } },
-        ].map(({ label, action }) => (
-          <button
-            key={label}
-            onClick={action}
-            className="px-3.5 py-1.5 rounded-xl border border-slate-200/80 bg-white/90 hover:bg-white text-xs font-extrabold text-slate-700 shadow-xs transition-all backdrop-blur-md"
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
       {/* 3D Scene */}
       <div
         ref={containerRef}
