@@ -17,6 +17,9 @@ import {
 // Landing page
 import LandingPage from "./components/landing/LandingPage";
 
+// Operator portal
+import OperatorPortal from "./components/operator/OperatorPortal";
+
 // Command center shell
 import CmdHeader from "./components/cmd/CmdHeader";
 import CmdSidebar from "./components/cmd/CmdSidebar";
@@ -35,7 +38,7 @@ const POLL_MS = 4000;
 
 export default function App() {
   // ─── Navigation state ───────────────────────────────
-  const [view, setView]           = useState("landing"); // "landing" | "command"
+  const [view, setView]           = useState("landing"); // "landing" | "command" | "operator"
   const [activeTab, setActiveTab] = useState("overview");
 
   // ─── Scenario ───────────────────────────────────────
@@ -173,6 +176,10 @@ export default function App() {
     setActiveTab("overview");
   }
 
+  function handleOpenOperator() {
+    setView("operator");
+  }
+
   function handleSelectEnvironment(env) {
     handleSwitchScenario(env).then(() => {
       setView("command");
@@ -182,6 +189,20 @@ export default function App() {
 
   // ─── Compute current process step ───────────────────
   const currentStep = activeIncident ? statusToStep(activeIncident.status) : 1;
+
+  // ─── RENDER: Operator Portal ────────────────────────
+  if (view === "operator") {
+    return (
+      <OperatorPortal
+        currentScenario={scenario}
+        onSwitchScenario={async (newSc) => {
+          setScenario(newSc);
+          await refreshAll();
+        }}
+        onExit={() => setView("command")}
+      />
+    );
+  }
 
   // ─── RENDER: Landing ────────────────────────────────
   if (view === "landing") {
@@ -214,7 +235,8 @@ export default function App() {
   return (
     <div className="flex flex-col w-screen h-screen overflow-hidden" style={{ background: "var(--color-ivory)" }}>
       {/* Top header */}
-      <CmdHeader scenario={scenario} onSwitchScenario={handleSwitchScenario} />
+      <CmdHeader scenario={scenario} onSwitchScenario={handleSwitchScenario} onOpenOperator={handleOpenOperator} />
+
 
       {/* Body: sidebar + content */}
       <div className="flex flex-1 overflow-hidden">

@@ -64,28 +64,195 @@ async def upload_rules(file: UploadFile = File(...)):
     return {"message": f"{len(rules)} rules loaded", "rules": rules}
 
 
-SCENARIO_FILES = {
-    "powerplant": "rules_powerplant.json",
-    "hospital": "rules_hospital.json",
+SCENARIO_REGISTRY = {
+    "powerplant": {
+        "id": "powerplant",
+        "name": "Power Plant",
+        "icon": "⚡",
+        "description": "Turbine Temperature, Generator Vibration & Coolant Pressure Safety Rules",
+        "file": "rules_powerplant.json",
+    },
+    "hospital": {
+        "id": "hospital",
+        "name": "Hospital ICU",
+        "icon": "🏥",
+        "description": "Cardiac Heart Rate, SpO2 Hypoxia & Systolic Blood Pressure Rules",
+        "file": "rules_hospital.json",
+    },
 }
+
+ACTIVE_SCENARIO = "powerplant"
+
+
+class DynamicScenarioRequest(BaseModel):
+    id: str
+    name: str
+    description: str = ""
+    icon: str = "⚙️"
+    rules: list[dict] = []
+
+
+def _validate_rules_schema(rules):
+    if not isinstance(rules, list):
+        raise HTTPException(status_code=400, detail="Rules payload must be a JSON array of rule objects")
+    for r in rules:
+        if not isinstance(r, dict) or "rule_id" not in r or "sensor" not in r or "operator" not in r or "threshold" not in r:
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid rule structure. Each rule must have rule_id, sensor, operator, and threshold"
+            )
+
+
+@app.get("/scenarios")
+def get_scenarios():
+    """Returns all available scenarios, metadata, rule count, and active status."""
+    global ACTIVE_SCENARIO
+    result = []
+    base_dir = Path(__file__).parent
+    for sc_id, sc in SCENARIO_REGISTRY.items():
+        file_path = base_dir / sc["file"]
+        rules_count = 0
+        if file_path.exists():
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    rules_count = len(json.load(f))
+            except Exception:
+                pass
+        result.append({
+            "id": sc["id"],
+            "name": sc["name"],
+            "icon": sc.get("icon", "⚙️"),
+            "description": sc.get("description", ""),
+            "file": sc["file"],
+            "rules_count": rules_count,
+            "is_active": ACTIVE_SCENARIO == sc_id,
+        })
+    return result
+
+
+@app.get("/scenarios/{sc_id}/rules")
+def get_scenario_rules(sc_id: str):
+    """Returns the rule file content for a specific scenario."""
+    if sc_id not in SCENARIO_REGISTRY:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    file_path = Path(__file__).parent / SCENARIO_REGISTRY[sc_id]["file"]
+    if not file_path.exists():
+        return []
+    with open(file_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+@app.post("/scenarios/{sc_id}/upload")
+async def upload_scenario_rules(sc_id: str, file: UploadFile = File(...)):
+    """Uploads an actual JSON rule file for a scenario, saves it on disk, and updates active rules if selected."""
+    global ACTIVE_SCENARIO
+    if sc_id not in SCENARIO_REGISTRY:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    
+    contents = await file.read()
+    try:
+        rules = json.loads(contents)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON file format")
+
+    _validate_rules_schema(rules)
+
+    file_path = Path(__file__).parent / SCENARIO_REGISTRY[sc_id]["file"]
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(rules, f, indent=2)
+
+    # If this scenario is currently active, load into active DB rules immediately
+    if ACTIVE_SCENARIO == sc_id:
+        clear_rules()
+        save_rules(rules)
+
+    return {
+        "message": f"Successfully uploaded and saved {len(rules)} rules for {SCENARIO_REGISTRY[sc_id]['name']}",
+        "scenario": sc_id,
+        "rules_count": len(rules),
+        "rules": rules,
+    }
+
+
+@app.post("/scenarios/add")
+def add_new_scenario(body: DynamicScenarioRequest):
+    """Creates a new scenario dynamically and saves its initial rules JSON file."""
+    global ACTIVE_SCENARIO
+    sc_id = body.id.strip().lower().replace(" ", "_")
+    if not sc_id:
+        raise HTTPException(status_code=400, detail="Scenario ID is required")
+    
+    file_name = f"rules_{sc_id}.json"
+    SCENARIO_REGISTRY[sc_id] = {
+        "id": sc_id,
+        "name": body.name,
+        "icon": body.icon,
+        "description": body.description,
+        "file": file_name,
+    }
+
+    _validate_rules_schema(body.rules)
+
+    file_path = Path(__file__).parent / file_name
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(body.rules, f, indent=2)
+
+    # Auto activate new scenario
+    ACTIVE_SCENARIO = sc_id
+    clear_rules()
+    save_rules(body.rules)
+
+    return {
+        "message": f"Scenario '{body.name}' created and activated successfully with {len(body.rules)} rules",
+        "scenario": SCENARIO_REGISTRY[sc_id],
+        "rules": body.rules,
+    }
+
+
+@app.delete("/scenarios/{sc_id}")
+def delete_scenario(sc_id: str):
+    """Deletes a custom scenario and its rule file."""
+    global ACTIVE_SCENARIO
+    if sc_id in ("powerplant", "hospital"):
+        raise HTTPException(status_code=400, detail="Default scenarios (Power Plant & Hospital) cannot be deleted")
+    if sc_id not in SCENARIO_REGISTRY:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+
+    sc = SCENARIO_REGISTRY.pop(sc_id)
+    file_path = Path(__file__).parent / sc["file"]
+    if file_path.exists():
+        try:
+            file_path.unlink()
+        except Exception:
+            pass
+
+    # If deleted scenario was active, fallback to powerplant
+    if ACTIVE_SCENARIO == sc_id:
+        load_scenario("powerplant")
+
+    return {"message": f"Scenario '{sc['name']}' deleted successfully", "active_scenario": ACTIVE_SCENARIO}
+
 
 
 @app.post("/scenario/{name}")
 def load_scenario(name: str):
     """Swaps the entire active rule set — proves genericity with zero code change."""
-    if name not in SCENARIO_FILES:
+    global ACTIVE_SCENARIO
+    if name not in SCENARIO_REGISTRY:
         raise HTTPException(status_code=404, detail="Unknown scenario")
 
-    path = Path(__file__).parent / SCENARIO_FILES[name]
+    path = Path(__file__).parent / SCENARIO_REGISTRY[name]["file"]
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"{path.name} not found on disk")
 
-    with open(path) as f:
+    with open(path, "r", encoding="utf-8") as f:
         rules = json.load(f)
 
+    ACTIVE_SCENARIO = name
     clear_rules()
     save_rules(rules)
     return {"scenario": name, "rules_loaded": len(rules)}
+
 
 
 @app.get("/rules")

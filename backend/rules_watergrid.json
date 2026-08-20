@@ -1,0 +1,19 @@
+[
+  {
+    "rule_id": "WG-001",
+    "sensor": "water_level",
+    "operator": "<",
+    "threshold": 15.0,
+    "severity": "high",
+    "suggested_actions": [
+      "Open emergency intake valve"
+    ],
+    "rollback_steps": [
+      "Close intake valve once baseline restored"
+    ],
+    "reversible": true,
+    "risk_factors": [
+      "Turbidity surge"
+    ]
+  }
+]

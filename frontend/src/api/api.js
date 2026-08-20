@@ -1,6 +1,8 @@
 import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
 
-const BASE_URL = "https://sih-fawk.onrender.com";
+const BASE_URL = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+  ? "http://localhost:8000"
+  : "https://sih-fawk.onrender.com";
 
 // Trust Score / Health Check / Stats endpoints don't exist until Phase 5 —
 // stay mocked here on purpose so Phase 4 doesn't block waiting on them.
@@ -121,3 +123,55 @@ export async function loadScenario(name) {
   }
   return res.json();
 }
+
+export async function getScenarios() {
+  const res = await fetch(`${BASE_URL}/scenarios`);
+  if (!res.ok) throw new Error("Failed to fetch scenarios");
+  return res.json();
+}
+
+export async function getScenarioRules(scId) {
+  const res = await fetch(`${BASE_URL}/scenarios/${scId}/rules`);
+  if (!res.ok) throw new Error("Failed to fetch scenario rules");
+  return res.json();
+}
+
+export async function uploadScenarioRules(scId, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${BASE_URL}/scenarios/${scId}/upload`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw { status: res.status, detail: err.detail || "Failed to upload rules" };
+  }
+  return res.json();
+}
+
+export async function addNewScenario(scenarioPayload) {
+  const res = await fetch(`${BASE_URL}/scenarios/add`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(scenarioPayload),
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw { status: res.status, detail: err.detail || "Failed to add new scenario" };
+  }
+  return res.json();
+}
+
+export async function deleteScenario(scId) {
+  const res = await fetch(`${BASE_URL}/scenarios/${scId}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw { status: res.status, detail: err.detail || "Failed to delete scenario" };
+  }
+  return res.json();
+}
+
+

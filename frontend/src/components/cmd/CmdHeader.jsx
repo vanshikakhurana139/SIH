@@ -14,7 +14,7 @@ function Clock() {
   );
 }
 
-export default function CmdHeader({ scenario, onSwitchScenario }) {
+export default function CmdHeader({ scenario, onSwitchScenario, onOpenOperator }) {
   return (
     <header className="header-glass flex items-center justify-between px-6 sm:px-8 py-4 shrink-0 z-20 border-b border-slate-200/80 bg-white/95">
       {/* Left */}
@@ -45,7 +45,7 @@ export default function CmdHeader({ scenario, onSwitchScenario }) {
                 key={id}
                 id={`scenario-${id}`}
                 onClick={() => onSwitchScenario(id)}
-                className="px-4 sm:px-5 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200"
+                className="px-4 sm:px-5 py-2 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200 cursor-pointer"
                 style={active
                   ? { background: "linear-gradient(135deg,#B8963E,#D4AF70)", color: "#fff", boxShadow: "0 3px 10px rgba(184,150,62,0.35)" }
                   : { color: "#475569" }
@@ -84,15 +84,17 @@ export default function CmdHeader({ scenario, onSwitchScenario }) {
           <button className="flex items-center justify-center w-9 h-9 rounded-2xl border border-slate-200/80 bg-slate-50 hover:bg-white transition-all text-slate-600 hover:text-slate-900 text-xs font-bold shadow-2xs">
             ?
           </button>
-          <button className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border border-slate-200/80 bg-slate-50 hover:bg-white transition-all shadow-2xs">
-            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-extrabold" style={{ background: "linear-gradient(135deg,#B8963E,#D4AF70)" }}>A</div>
-            <span className="text-xs font-extrabold text-slate-700">Operator</span>
-            <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400">
-              <path d="M2 4l4 4 4-4" />
-            </svg>
+          <button
+            onClick={onOpenOperator}
+            className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border border-amber-300/80 bg-amber-50/60 hover:bg-amber-100/80 transition-all shadow-2xs cursor-pointer group"
+          >
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-extrabold group-hover:scale-105 transition-transform" style={{ background: "linear-gradient(135deg,#B8963E,#D4AF70)" }}>A</div>
+            <span className="text-xs font-extrabold text-slate-800">Operator</span>
+            <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 border border-amber-300">Backend</span>
           </button>
         </div>
       </div>
     </header>
   );
 }
+
