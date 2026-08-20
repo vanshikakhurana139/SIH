@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { IconBolt } from "../icons";
 
 const PROMPT_CARDS = [
   {
@@ -66,8 +65,10 @@ function answerFor(key, incident, customQuery) {
 }
 
 export default function AskSystemChat({ incident }) {
+  const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputQuery, setInputQuery] = useState("");
+  const [hovering, setHovering] = useState(false);
 
   function ask(key, label) {
     const answer = answerFor(key, incident, null);
@@ -83,106 +84,160 @@ export default function AskSystemChat({ incident }) {
   }
 
   return (
-    <div className="ivory-card p-8 sm:p-9 rounded-3xl border border-slate-200/90 shadow-sm bg-white/95 flex flex-col justify-between min-h-[520px]">
-      <div>
-        {/* Header with AI model telemetry stats */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-6 border-b border-slate-200">
-          <div>
-            <div className="flex items-center gap-3 mb-1.5">
-              <span className="px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest bg-amber-100/90 text-amber-900 border border-amber-300 shadow-2xs flex items-center gap-2">
-                <IconBolt width={16} height={16} className="text-amber-700" />
-                AI Reasoning Engine
-              </span>
-              <span className="text-xs font-black text-slate-700 bg-slate-100 border border-slate-200 px-3.5 py-1.5 rounded-full">
-                DETERMINISTIC INFERENCE
-              </span>
-            </div>
-            <p className="text-sm font-bold text-slate-700 mt-1">
-              Query the AI inference engine for step-by-step diagnostic rationales and safety bounds.
-            </p>
+    <>
+      {/* Floating Trigger Button (Bottom Right) */}
+      {!isOpen && (
+        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 animate-in fade-in duration-300">
+          {/* Ask AI Pill Bubble */}
+          <div className="hidden sm:flex items-center gap-2 bg-white/95 backdrop-blur-md border border-slate-200/90 px-3.5 py-1.5 rounded-full shadow-lg text-xs font-black text-slate-900 font-sans">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
+            Ask AI
           </div>
 
-          {/* Model Stat Badges */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="px-4 py-2 rounded-2xl bg-slate-100 border border-slate-200 text-center">
-              <p className="text-[11px] font-black uppercase text-slate-500">Inference Latency</p>
-              <p className="text-sm font-black text-slate-900 mt-0.5">12 ms</p>
-            </div>
-            <div className="px-4 py-2 rounded-2xl bg-slate-100 border border-slate-200 text-center">
-              <p className="text-[11px] font-black uppercase text-slate-500">AI Model</p>
-              <p className="text-sm font-black text-slate-900 mt-0.5">DeepReason v3.2</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Structured 2-Column Prompt Grid */}
-        <div className="mb-6">
-          <p className="text-xs font-black uppercase tracking-widest text-slate-600 mb-3">
-            Quick Diagnostic Categories
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {PROMPT_CARDS.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => ask(item.key, item.q)}
-                className="p-3.5 rounded-2xl text-left bg-slate-50 border border-slate-200/90 hover:border-amber-500 hover:bg-amber-50/80 transition-all shadow-2xs group flex flex-col justify-between min-h-[76px]"
-              >
-                <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-[10.5px] font-black uppercase tracking-wider text-amber-800 bg-amber-100/70 px-2 py-0.5 rounded-md">
-                    {item.tag}
-                  </span>
-                  <span className="text-sm">{item.icon}</span>
-                </div>
-                <p className="text-xs font-black text-slate-900 group-hover:text-amber-900 leading-snug">
-                  {item.q}
-                </p>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Messages Output Area */}
-        <div className="space-y-3 min-h-[120px] max-h-72 overflow-y-auto pr-1 mb-6">
-          {messages.length === 0 && (
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 text-sm text-slate-800 leading-relaxed font-bold flex items-center gap-3">
-              <span className="text-2xl shrink-0">💡</span>
-              <p>Select any diagnostic category above or type a custom question below to fetch instant deterministic reasoning directly from the AI inference engine.</p>
-            </div>
-          )}
-          {messages.map((m, i) => (
-            <div
-              key={i}
-              className={`text-sm leading-relaxed p-5 rounded-2xl shadow-2xs transition-all ${
-                m.role === "user"
-                  ? "bg-white text-slate-900 font-extrabold border border-slate-300"
-                  : "bg-gradient-to-r from-amber-100/90 to-amber-50/70 text-slate-950 font-bold border border-amber-300"
-              }`}
+          {/* Floating Robot Avatar Button */}
+          <div className="relative">
+            <button
+              onClick={() => setIsOpen(true)}
+              onMouseEnter={() => setHovering(true)}
+              onMouseLeave={() => setHovering(false)}
+              className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-600 via-amber-500 to-amber-400 p-0.5 shadow-xl border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-transform duration-200 group"
             >
-              <span className="font-black text-xs uppercase tracking-wider block mb-1 text-amber-900">
-                {m.role === "user" ? "👤 Operator Question" : "🤖 AI Reasoning Engine Analysis"}
-              </span>
-              {m.text}
-            </div>
-          ))}
-        </div>
-      </div>
+              <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center">
+                {/* Robot Icon */}
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="#F59E0B" strokeWidth="2.2">
+                  <rect x="5" y="8" width="14" height="11" rx="3" fill="#F59E0B20" />
+                  <path d="M12 2v6M9 4h6" strokeLinecap="round" />
+                  <circle cx="9.5" cy="12.5" r="1.5" fill="#F59E0B" />
+                  <circle cx="14.5" cy="12.5" r="1.5" fill="#F59E0B" />
+                  <path d="M9.5 16h5" strokeLinecap="round" />
+                </svg>
+              </div>
+            </button>
 
-      {/* Custom Query Input Bar */}
-      <form onSubmit={handleCustomSubmit} className="flex gap-3 pt-2">
-        <input
-          type="text"
-          placeholder="Ask a custom question to the AI Reasoning Engine..."
-          value={inputQuery}
-          onChange={(e) => setInputQuery(e.target.value)}
-          className="flex-1 bg-white border border-slate-300 rounded-2xl px-6 py-4 text-sm font-bold text-slate-900 placeholder:text-slate-500 focus:outline-none focus:border-amber-600 shadow-2xs"
-        />
-        <button
-          type="submit"
-          className="gold-btn px-8 py-4 rounded-2xl text-xs font-black tracking-wider shrink-0 shadow-sm"
-        >
-          Send Query
-        </button>
-      </form>
-    </div>
+            {/* Hover Tooltip: AI Reasoning Engine */}
+            {hovering && (
+              <div className="absolute right-0 bottom-16 whitespace-nowrap bg-slate-900 text-white text-[11px] font-black uppercase tracking-wider px-3 py-1.5 rounded-xl shadow-xl border border-slate-700 animate-in fade-in duration-150 pointer-events-none">
+                AI Reasoning Engine
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Floating Chatbot Window (Popover less than half page) */}
+      {isOpen && (
+        <div className="fixed bottom-6 right-6 z-50 w-[390px] max-w-[calc(100vw-2rem)] h-[580px] max-h-[85vh] bg-white border border-slate-200/90 rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200 font-sans">
+          {/* Header */}
+          <div className="p-4 bg-slate-50 border-b border-slate-200/90 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-600 font-bold shadow-2xs">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <rect x="5" y="8" width="14" height="11" rx="3" fill="currentColor" fillOpacity="0.1" />
+                  <path d="M12 2v6M9 4h6" strokeLinecap="round" />
+                  <circle cx="9.5" cy="12.5" r="1.5" fill="currentColor" />
+                  <circle cx="14.5" cy="12.5" r="1.5" fill="currentColor" />
+                  <path d="M9.5 16h5" strokeLinecap="round" />
+                </svg>
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h3 className="text-sm font-black text-slate-900 leading-none">Sentinel AI</h3>
+                  <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    ONLINE
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 font-bold mt-0.5">AI Reasoning Engine & Assistant</p>
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsOpen(false)}
+              className="w-8 h-8 rounded-xl bg-slate-200/70 hover:bg-slate-300/80 text-slate-600 hover:text-slate-900 flex items-center justify-center font-black transition-colors cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Scrollable Body */}
+          <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-slate-50/50">
+            {/* Greeting Banner */}
+            <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs space-y-1">
+              <h4 className="text-xl font-black text-slate-900 tracking-tight">Hi, There 👋</h4>
+              <p className="text-xs font-bold text-slate-600 leading-relaxed">
+                I'm <span className="text-amber-800 font-black">Sentinel AI</span> — your personal automated incident reasoning assistant. Let's analyze live telemetry together.
+              </p>
+            </div>
+
+            {/* Pre-fed Questions List ("You may try asking") */}
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-2.5">
+                You may try asking
+              </p>
+
+              <div className="space-y-2">
+                {PROMPT_CARDS.map((item) => (
+                  <button
+                    key={item.key}
+                    onClick={() => ask(item.key, item.q)}
+                    className="w-full p-3 rounded-xl text-left bg-white hover:bg-amber-50/80 border border-slate-200/90 hover:border-amber-400 transition-all shadow-2xs group flex items-center justify-between gap-3 cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-base">{item.icon}</span>
+                      <span className="text-xs font-extrabold text-slate-800 group-hover:text-amber-900 leading-snug">
+                        {item.q}
+                      </span>
+                    </div>
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" className="text-slate-400 group-hover:text-amber-700 shrink-0">
+                      <path d="M6 3l5 5-5 5" />
+                    </svg>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Chat History Log */}
+            {messages.length > 0 && (
+              <div className="space-y-3 pt-2 border-t border-slate-200/80">
+                <p className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                  Reasoning Conversation
+                </p>
+                {messages.map((m, i) => (
+                  <div
+                    key={i}
+                    className={`text-xs leading-relaxed p-3.5 rounded-2xl shadow-2xs transition-all ${
+                      m.role === "user"
+                        ? "bg-slate-900 text-white font-bold ml-6"
+                        : "bg-white text-slate-900 font-medium border border-slate-200/90 mr-4"
+                    }`}
+                  >
+                    <span className="font-black text-[10px] uppercase tracking-wider block mb-1 opacity-70">
+                      {m.role === "user" ? "👤 You" : "🤖 Sentinel AI"}
+                    </span>
+                    {m.text}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Footer Input Bar */}
+          <form onSubmit={handleCustomSubmit} className="p-3 bg-white border-t border-slate-200/90 flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Ask me anything..."
+              value={inputQuery}
+              onChange={(e) => setInputQuery(e.target.value)}
+              className="flex-1 bg-slate-100/80 border border-slate-200/80 rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-amber-500 focus:bg-white"
+            />
+            <button
+              type="submit"
+              className="w-9 h-9 rounded-2xl bg-amber-600 hover:bg-amber-700 text-white flex items-center justify-center shrink-0 font-bold transition-transform active:scale-95 cursor-pointer shadow-xs"
+            >
+              ↑
+            </button>
+          </form>
+        </div>
+      )}
+    </>
   );
 }
