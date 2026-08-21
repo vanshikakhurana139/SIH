@@ -12,6 +12,8 @@ import {
   getStats,
   loadScenario,
   enableAutopilot,
+  manualEscalateIncident,
+  resetActiveIncidents,
 } from "./api/api";
 
 // Landing page
@@ -51,10 +53,53 @@ export default function App() {
   const [healthCheck, setHealthCheck]       = useState(null);
   const [stats, setStats]                   = useState(null);
 
+  // ─── Shift Operator State ──────────────────────────
+  const [activeShiftOperator, setActiveShiftOperator] = useState(() => {
+    return localStorage.getItem("sentinel_active_operator") || "Marcus Vance";
+  });
+
+  const handleSelectOperator = (operatorName) => {
+    setActiveShiftOperator(operatorName);
+    localStorage.setItem("sentinel_active_operator", operatorName);
+  };
+
   // ─── UI state ───────────────────────────────────────
   const [notice, setNotice]   = useState("");
   const [loadError, setLoadError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // ─── Browser Push & Toast Notification Tracking ─────
+  const prevIncidentRef = useCallback((prev, current) => {
+    if (!current) return;
+    // 1. Check if newly triggered incident
+    if (!prev || prev.id !== current.id) {
+      flash(`🚨 New Incident Alert: ${current.source?.replace(/_/g, " ")} (${current.severity?.toUpperCase()}) assigned to ${current.assigned_operator_name || "Shift Operator"}`);
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification("🚨 SENTINEL: Incident Assigned", {
+            body: `${current.severity?.toUpperCase()} Anomaly: ${current.source}. Assigned to ${current.assigned_operator_name || "Shift Operator"}.`,
+            icon: "/favicon.ico",
+          });
+        } catch (err) {
+          console.error("Browser notification error:", err);
+        }
+      }
+    }
+    // 2. Check if escalated to Ops Head
+    else if (prev && prev.id === current.id && prev.escalation_level === 0 && current.escalation_level === 1) {
+      flash(`🚨 SLA BREACH: Incident escalated to Operations Head (${current.assigned_operator_name})!`);
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification("🚨 SLA BREACH: Escalated to Operations Head", {
+            body: `Incident ${current.source} exceeded SLA and was escalated to ${current.assigned_operator_name}.`,
+            icon: "/favicon.ico",
+          });
+        } catch (err) {
+          console.error("Browser notification error:", err);
+        }
+      }
+    }
+  }, []);
 
   // ─── Polling ────────────────────────────────────────
   const refreshAll = useCallback(async () => {
@@ -66,7 +111,10 @@ export default function App() {
         getHealthCheck(),
         getStats(),
       ]);
-      setActiveIncident(inc);
+      setActiveIncident((prev) => {
+        prevIncidentRef(prev, inc);
+        return inc;
+      });
       setIncidents(all || []);
       setTrustScores(trust || []);
       setHealthCheck(hc || null);
@@ -75,11 +123,17 @@ export default function App() {
     } catch {
       setLoadError("⚠ Unable to reach backend. Make sure the FastAPI server is running on port 8000.");
     }
-  }, []);
+  }, [prevIncidentRef]);
 
   useEffect(() => {
+    // Request browser notification permission once
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+
     const fetchInitial = async () => {
       try {
+        await resetActiveIncidents().catch(() => {});
         await loadScenario(scenario);
       } catch (err) {
         console.error("Initial scenario load:", err);
@@ -105,6 +159,7 @@ export default function App() {
       await simulateIncident(sensor, value);
       await refreshAll();
       flash(`✓ Sensor ${sensor} injected at ${value}. AI diagnosis complete.`);
+      setView("command");
       setActiveTab("overview");
     } catch (e) {
       flash(`⚠ ${e.detail || "Simulation failed — is the backend running?"}`);
@@ -197,6 +252,16 @@ export default function App() {
   // ─── Compute current process step ───────────────────
   const currentStep = activeIncident ? statusToStep(activeIncident.status) : 1;
 
+  async function handleManualEscalate(incidentId) {
+    try {
+      await manualEscalateIncident(incidentId);
+      await refreshAll();
+      flash("🚨 Incident manually escalated to Operations Head.");
+    } catch (e) {
+      flash(`⚠ ${e.detail || "Manual escalation failed."}`);
+    }
+  }
+
   // ─── RENDER: Operator Portal ────────────────────────
   if (view === "operator") {
     return (
@@ -206,6 +271,8 @@ export default function App() {
           setScenario(newSc);
           await refreshAll();
         }}
+        activeShiftOperator={activeShiftOperator}
+        onSelectOperator={handleSelectOperator}
         onExit={() => setView("command")}
       />
     );
@@ -230,11 +297,13 @@ export default function App() {
     healthCheck,
     stats,
     scenario,
+    activeShiftOperator,
     onApprove: handleApprove,
     onReject: handleReject,
     onModify: handleModify,
     onUndo: handleUndo,
     onEnableAutopilot: handleEnableAutopilot,
+    onManualEscalate: handleManualEscalate,
     notice,
     loadError,
   };
@@ -247,6 +316,7 @@ export default function App() {
         onSwitchScenario={handleSwitchScenario}
         onOpenOperator={handleOpenOperator}
         activeIncident={activeIncident}
+        activeShiftOperator={activeShiftOperator}
       />
 
 
@@ -258,6 +328,7 @@ export default function App() {
           onTabChange={setActiveTab}
           incidents={incidents}
           onOpenOperator={handleOpenOperator}
+          activeShiftOperator={activeShiftOperator}
         />
 
         {/* Main content area */}
@@ -287,7 +358,13 @@ export default function App() {
             )}
             {activeTab === "alerts" && <AlertsTab incidents={incidents} />}
             {activeTab === "config" && (
-              <ConfigTab scenario={scenario} onSimulate={handleSimulate} />
+              <ConfigTab
+                scenario={scenario}
+                onSimulate={async (sensor, value) => {
+                  setActiveTab("overview");
+                  await handleSimulate(sensor, value);
+                }}
+              />
             )}
           </div>
         </div>

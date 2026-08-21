@@ -29,7 +29,7 @@ def match_data_point(sensor_name: str, value: float, rules: list[dict]) -> dict 
 
 
 def build_incident(sensor_name: str, value: float, rule: dict) -> dict:
-    """Builds an Incident object matching schema.md exactly."""
+    """Builds an Incident object matching schema.md with operator assignment & escalation metadata."""
     return {
         "id": str(uuid.uuid4()),
         "severity": rule["severity"],
@@ -44,4 +44,11 @@ def build_incident(sensor_name: str, value: float, rule: dict) -> dict:
         "recommended_action": "",    # filled in Phase 2
         "rollback_plan": [],         # filled in Phase 2
         "reversible": rule["reversible"],
+        # Escalation & Operator metadata
+        "assigned_operator_id": None,
+        "assigned_operator_name": None,
+        "assigned_operator_role": "shift_operator",
+        "escalation_level": 0,       # 0 = assigned to shift operator, 1 = escalated to Operations Head
+        "escalated_at": None,
+        "escalation_reason": None,
     }

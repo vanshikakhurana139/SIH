@@ -14,7 +14,7 @@ function Clock() {
   );
 }
 
-export default function CmdHeader({ scenario, onSwitchScenario, onOpenOperator, activeIncident }) {
+export default function CmdHeader({ scenario, onSwitchScenario, onOpenOperator, activeIncident, activeShiftOperator }) {
   const isTriggered = activeIncident && (activeIncident.status === "diagnosed" || activeIncident.status === "pending_approval");
   const sev = activeIncident?.severity || "critical";
   const sevColor = {
@@ -132,10 +132,16 @@ export default function CmdHeader({ scenario, onSwitchScenario, onOpenOperator, 
           <button
             onClick={onOpenOperator}
             className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border border-amber-300/80 bg-amber-50/60 hover:bg-amber-100/80 transition-all shadow-2xs cursor-pointer group"
+            title="Switch Shift Operator / Manage Rules"
           >
-            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-extrabold group-hover:scale-105 transition-transform" style={{ background: "linear-gradient(135deg,#B8963E,#D4AF70)" }}>A</div>
-            <span className="text-xs font-extrabold text-slate-800">Operator</span>
-            <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 border border-amber-300">Backend</span>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-extrabold group-hover:scale-105 transition-transform" style={{ background: "linear-gradient(135deg,#B8963E,#D4AF70)" }}>
+              {activeShiftOperator ? activeShiftOperator.split(" ").map(n => n[0]).join("") : "OP"}
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-xs font-extrabold text-slate-800 leading-none">{activeShiftOperator || "Operator"}</span>
+              <span className="text-[9px] font-bold text-amber-800 tracking-wider uppercase mt-0.5">On Duty</span>
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-200 text-amber-900 border border-amber-300 ml-1">Backend</span>
           </button>
         </div>
       </div>

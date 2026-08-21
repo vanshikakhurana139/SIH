@@ -58,7 +58,7 @@ function IconConfig({ size = 17 }) {
   );
 }
 
-export default function CmdSidebar({ activeTab, onTabChange, incidents = [], onOpenOperator }) {
+export default function CmdSidebar({ activeTab, onTabChange, incidents = [], onOpenOperator, activeShiftOperator }) {
   const activeCount = incidents.filter((i) => i.status !== "resolved" && i.status !== "rejected" && i.status !== "undone").length || 2;
   const alertCount = Math.min(incidents.length || 6, 6);
 
@@ -161,15 +161,16 @@ export default function CmdSidebar({ activeTab, onTabChange, incidents = [], onO
       <div className="pt-4 border-t border-slate-200/80">
         <button
           onClick={onOpenOperator}
+          title="Click to Switch Shift Operator / Open Operator Backend"
           className="w-full flex items-center justify-between p-2.5 rounded-2xl bg-white border border-slate-200 hover:border-amber-300 hover:shadow-sm transition-all text-left group cursor-pointer"
         >
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0 shadow-2xs bg-[#B8860B]">
-              OP
+              {activeShiftOperator ? activeShiftOperator.split(" ").map(n => n[0]).join("") : "OP"}
             </div>
             <div className="min-w-0">
-              <p className="text-xs font-black text-slate-900 leading-tight truncate">Operator</p>
-              <p className="text-[10px] font-mono font-bold text-slate-500 truncate mt-0.5">Control Room 1</p>
+              <p className="text-xs font-black text-slate-900 leading-tight truncate">{activeShiftOperator || "Operator"}</p>
+              <p className="text-[10px] font-mono font-bold text-slate-500 truncate mt-0.5">Control Room • On Shift</p>
             </div>
           </div>
           <span className="text-slate-400 group-hover:text-amber-700 transition-colors text-xs pr-1 font-bold">

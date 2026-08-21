@@ -1,63 +1,63 @@
 [
-    {
-        "rule_id": "HOSP-001",
-        "sensor": "heart_rate",
-        "operator": ">",
-        "threshold": 130.0,
-        "severity": "high",
-        "suggested_actions": [
-            "Alert attending nurse immediately",
-            "Initiate continuous ECG monitoring",
-            "Prepare beta-blocker per protocol, pending physician order"
-        ],
-        "rollback_steps": [
-            "Discontinue continuous ECG monitoring once vitals stabilize",
-            "Cancel pending medication order if not administered"
-        ],
-        "reversible": true,
-        "risk_factors": [
-            "Elevated heart rate can be caused by patient anxiety or movement artifact, not a cardiac event",
-            "Beta-blocker administration without physician confirmation carries dosing risk",
-            "Continuous ECG monitoring can trigger alarm fatigue if started on a transient spike"
-        ]
-    },
-    {
-        "rule_id": "HOSP-002",
-        "sensor": "spo2",
-        "operator": "<",
-        "threshold": 90.0,
-        "severity": "critical",
-        "suggested_actions": [
-            "Administer supplemental oxygen immediately",
-            "Page rapid response team"
-        ],
-        "rollback_steps": [
-            "Cannot be rolled back automatically — requires physician sign-off"
-        ],
-        "reversible": false,
-        "risk_factors": [
-            "Pulse oximeter readings are unreliable on patients with poor peripheral circulation or nail polish",
-            "Paging rapid response for a false reading has a real cost to other patients being triaged",
-            "Supplemental oxygen at high flow can mask a worsening underlying condition if over-relied on"
-        ]
-    },
-    {
-        "rule_id": "HOSP-003",
-        "sensor": "systolic_bp",
-        "operator": "<",
-        "threshold": 90.0,
-        "severity": "medium",
-        "suggested_actions": [
-            "Increase IV fluid rate",
-            "Recheck blood pressure in 5 minutes"
-        ],
-        "rollback_steps": [
-            "Return IV fluid rate to baseline once BP normalizes"
-        ],
-        "reversible": true,
-        "risk_factors": [
-            "Low blood pressure readings can result from incorrect cuff sizing or arm position",
-            "Increased IV fluid rate is risky for patients with underlying heart or kidney conditions"
-        ]
-    }
+  {
+    "rule_id": "HOSP-001",
+    "sensor": "heart_rate",
+    "operator": ">",
+    "threshold": 130,
+    "severity": "high",
+    "suggested_actions": [
+      "Alert attending nurse immediately",
+      "Initiate continuous ECG monitoring",
+      "Prepare beta-blocker per protocol, pending physician order"
+    ],
+    "rollback_steps": [
+      "Discontinue continuous ECG monitoring once vitals stabilize",
+      "Cancel pending medication order if not administered"
+    ],
+    "reversible": true,
+    "risk_factors": [
+      "Elevated heart rate can be caused by patient anxiety or movement artifact, not a cardiac event",
+      "Beta-blocker administration without physician confirmation carries dosing risk",
+      "Continuous ECG monitoring can trigger alarm fatigue if started on a transient spike"
+    ]
+  },
+  {
+    "rule_id": "HOSP-002",
+    "sensor": "spo2",
+    "operator": "<",
+    "threshold": 90,
+    "severity": "critical",
+    "suggested_actions": [
+      "Administer supplemental oxygen immediately",
+      "Page rapid response team"
+    ],
+    "rollback_steps": [
+      "Cannot be rolled back automatically \u2014 requires physician sign-off"
+    ],
+    "reversible": false,
+    "risk_factors": [
+      "Pulse oximeter readings are unreliable on patients with poor peripheral circulation or nail polish",
+      "Paging rapid response for a false reading has a real cost to other patients being triaged",
+      "Supplemental oxygen at high flow can mask a worsening underlying condition if over-relied on"
+    ]
+  },
+  {
+    "rule_id": "HOSP-003",
+    "sensor": "systolic_bp",
+    "operator": "<",
+    "threshold": 90,
+    "severity": "medium",
+    "suggested_actions": [
+      "Increase IV fluid rate",
+      "Recheck blood pressure in 5 minutes"
+    ],
+    "rollback_steps": [
+      "Return IV fluid rate to baseline once BP normalizes"
+    ],
+    "reversible": true,
+    "risk_factors": [
+      "Low blood pressure readings can result from incorrect cuff sizing or arm position",
+      "Increased IV fluid rate is risky for patients with underlying heart or kidney conditions"
+    ]
+  }
 ]

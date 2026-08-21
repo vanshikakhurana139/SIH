@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+import asyncio
 # pyrefly: ignore [missing-import]
 from fastapi import FastAPI, UploadFile, File, HTTPException
 # pyrefly: ignore [missing-import]
@@ -17,6 +18,9 @@ from database import (
     get_all_trust_scores, enable_autopilot,
     get_audit_events_for_rule,
     clear_pending_incidents,
+    get_operators, set_operator_duty, update_operator_phone, get_active_shift_operator, get_ops_head,
+    get_escalation_sla_seconds, set_escalation_sla_seconds,
+    get_unresolved_incidents_older_than, escalate_incident_record,
 )
 from rule_engine import match_data_point
 
@@ -41,6 +45,99 @@ app.add_middleware(
 # Create the DB tables on startup if they don't exist yet
 init_db()
 clear_pending_incidents()
+
+# Phone / Push Notification Dispatcher
+import urllib.request
+import urllib.parse
+import os
+
+TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID", "")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
+TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER", "")
+TWILIO_WHATSAPP_NUMBER = os.environ.get("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886")
+
+async def dispatch_phone_alert(recipient_name: str, phone: str, channel: str, message: str, alert_type: str = "SMS"):
+    """
+    Dispatches direct SMS or WhatsApp alert to operator or Ops Head.
+    Supports Twilio (global cellular SMS/WhatsApp) with graceful fallback to audit simulation log.
+    """
+    try:
+        # 1. Global SMS / WhatsApp via Twilio
+        if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
+            import base64
+            auth_str = f"{TWILIO_ACCOUNT_SID}:{TWILIO_AUTH_TOKEN}"
+            b64_auth = base64.b64encode(auth_str.encode()).decode()
+            from_number = TWILIO_WHATSAPP_NUMBER if channel == "whatsapp" else TWILIO_PHONE_NUMBER
+            to_number = f"whatsapp:{phone}" if channel == "whatsapp" else phone
+            
+            data = urllib.parse.urlencode({
+                "To": to_number,
+                "From": from_number,
+                "Body": message
+            }).encode()
+            
+            url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
+            req = urllib.request.Request(url, data=data, headers={"Authorization": f"Basic {b64_auth}"})
+            resp = urllib.request.urlopen(req, timeout=6)
+            resp_str = resp.read().decode("utf-8")
+            print(f"[{alert_type.upper()}] Sent live dispatch to {recipient_name} ({phone}): {resp_str}")
+            return {"success": True, "provider": "twilio", "response": resp_str}
+
+        # 2. Standalone demo simulator gateway
+        clean_msg = message[:60].encode("ascii", "replace").decode("ascii")
+        print(f"[SENTINEL {alert_type.upper()} GATEWAY] Dispatched to {recipient_name} at {phone}: {clean_msg}...")
+        return {"success": True, "provider": "simulator", "phone": phone}
+    except Exception as e:
+        print(f"[PHONE ALERT ERROR] {e}")
+        return {"success": False, "error": str(e)}
+
+
+async def escalation_watcher():
+    """Background task checking unresolved incidents and escalating to Ops Head on SLA breach."""
+    while True:
+        try:
+            sla_seconds = get_escalation_sla_seconds()
+            overdue_incidents = get_unresolved_incidents_older_than(sla_seconds)
+            ops_head = get_ops_head()
+            
+            for incident in overdue_incidents:
+                inc_id = incident["id"]
+                escalated = escalate_incident_record(inc_id, ops_head)
+                if escalated:
+                    # Append tamper-evident audit log
+                    try:
+                        append_audit_log(
+                            incident_id=inc_id,
+                            event_type="escalated_to_ops_head",
+                            content={
+                                "escalation_level": 1,
+                                "assigned_to": ops_head.get("name"),
+                                "role": ops_head.get("role"),
+                                "phone": ops_head.get("phone", "+1 (555) 999-0144"),
+                                "sla_seconds": sla_seconds,
+                                "reason": "SLA Resolution Threshold Exceeded without Operator Action",
+                            }
+                        )
+                    except Exception:
+                        pass
+
+                    # Dispatch Direct SMS & WhatsApp Alert to Operations Head
+                    head_name = ops_head.get("name", "Dr. Sarah Sterling")
+                    head_phone = ops_head.get("phone", "+1 (555) 999-0144")
+                    alert_body = (
+                        f"🚨 [SENTINEL ESCALATION] SLA Breach on incident {incident.get('source', 'sensor')}. "
+                        f"Escalated to Operations Head {head_name}. Immediate executive sign-off required."
+                    )
+                    asyncio.create_task(dispatch_phone_alert(head_name, head_phone, "sms", alert_body, "SMS"))
+                    asyncio.create_task(dispatch_phone_alert(head_name, head_phone, "whatsapp", alert_body, "WhatsApp"))
+        except Exception:
+            pass
+        await asyncio.sleep(4)
+
+
+@app.on_event("startup")
+async def start_background_tasks():
+    asyncio.create_task(escalation_watcher())
 
 # Ensure default powerplant rules are initialized on startup
 def _init_default_scenario():
@@ -279,8 +376,8 @@ def list_rules():
 
 
 @app.post("/simulate")
-def simulate(data_point: DataPoint):
-    """Accepts one synthetic sensor reading and checks it against loaded rules."""
+async def simulate(data_point: DataPoint):
+    """Accepts one synthetic sensor reading, checks it against loaded rules, and assigns the active shift operator."""
     rules = get_all_rules()
     if not rules:
         raise HTTPException(status_code=400, detail="No rules loaded — call /rules/upload first")
@@ -290,7 +387,43 @@ def simulate(data_point: DataPoint):
     if incident is None:
         return {"matched": False, "message": "No rule matched this data point"}
 
+    # Assign the currently active on-duty shift operator
+    active_op = get_active_shift_operator()
+    incident["assigned_operator_id"] = active_op.get("id", "op-1")
+    incident["assigned_operator_name"] = active_op.get("name", "Marcus Vance")
+    incident["assigned_operator_role"] = active_op.get("role", "shift_operator")
+
     save_incident(incident)
+
+    # Log initial assignment event in tamper-evident audit trail
+    try:
+        append_audit_log(
+            incident_id=incident["id"],
+            event_type="assigned_to_operator",
+            content={
+                "assigned_to": active_op.get("name"),
+                "operator_id": active_op.get("id"),
+                "role": active_op.get("role"),
+                "phone": active_op.get("phone", "+1 (555) 234-8901"),
+                "shift_time": active_op.get("shift_time"),
+                "sensor": data_point.sensor,
+                "sensor_value": data_point.value,
+            }
+        )
+    except Exception:
+        pass
+
+    # Dispatch Instant SMS & WhatsApp Alert to Active Shift Operator
+    op_name = active_op.get("name", "Marcus Vance")
+    op_phone = active_op.get("phone", "+1 (555) 234-8901")
+    alert_msg = (
+        f"🚨 [SENTINEL ALERT] New {incident.get('severity', '').upper()} anomaly on sensor '{data_point.sensor}' "
+        f"(Value: {data_point.value}). Assigned to {op_name} ({active_op.get('shift_time', 'Day Shift')}). "
+        f"Awaiting triage."
+    )
+    asyncio.create_task(dispatch_phone_alert(op_name, op_phone, "sms", alert_msg, "SMS"))
+    asyncio.create_task(dispatch_phone_alert(op_name, op_phone, "whatsapp", alert_msg, "WhatsApp"))
+
     return {"matched": True, "incident": incident}
 
 
@@ -481,3 +614,118 @@ def stats():
         "avgConfidence": avg_confidence,
         "autoPilotEnabled": autopilot_types,
     }
+
+
+# ---------- Operator & SLA Endpoints ----------
+
+class DutyToggleRequest(BaseModel):
+    on_duty: bool
+
+
+class OperatorPhoneRequest(BaseModel):
+    phone: str
+
+
+class GatewayConfigRequest(BaseModel):
+    fast2sms_api_key: str | None = None
+    twilio_sid: str | None = None
+    twilio_token: str | None = None
+
+
+class EscalationConfigRequest(BaseModel):
+    sla_seconds: int
+
+
+class TestAlertRequest(BaseModel):
+    name: str = "Operator"
+    phone: str
+    channel: str = "sms"  # "sms" or "whatsapp"
+    message: str = "🚨 [SENTINEL TEST ALERT] Real-time hardware telemetry test."
+
+
+@app.post("/config/gateway")
+def set_gateway_config(body: GatewayConfigRequest):
+    """Sets SMS / WhatsApp gateway credentials dynamically at runtime."""
+    global TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN
+    if body.twilio_sid:
+        TWILIO_ACCOUNT_SID = body.twilio_sid.strip()
+    if body.twilio_token:
+        TWILIO_AUTH_TOKEN = body.twilio_token.strip()
+    return {"message": "Gateway credentials updated successfully"}
+
+
+@app.get("/operators")
+def list_operators():
+    """Returns list of shift operators and operations head with duty status."""
+    return get_operators()
+
+
+@app.post("/operators/{op_id}/duty")
+def toggle_operator_duty(op_id: str, body: DutyToggleRequest):
+    """Sets operator on_duty state."""
+    set_operator_duty(op_id, body.on_duty)
+    return {"message": f"Operator {op_id} on_duty set to {body.on_duty}", "operators": get_operators()}
+
+
+@app.post("/operators/{op_id}/phone")
+def set_operator_phone(op_id: str, body: OperatorPhoneRequest):
+    """Updates operator phone number for SMS and WhatsApp alerts."""
+    update_operator_phone(op_id, body.phone)
+    return {"message": f"Operator {op_id} phone updated to {body.phone}", "operators": get_operators()}
+
+
+@app.get("/config/escalation")
+def get_escalation_config():
+    """Returns current SLA threshold in seconds."""
+    return {"sla_seconds": get_escalation_sla_seconds()}
+
+
+@app.post("/config/escalation")
+def update_escalation_config(body: EscalationConfigRequest):
+    """Updates SLA threshold in seconds."""
+    set_escalation_sla_seconds(body.sla_seconds)
+    return {"message": f"Escalation SLA updated to {body.sla_seconds}s", "sla_seconds": body.sla_seconds}
+
+
+@app.post("/alerts/test-phone")
+async def send_test_phone_alert(body: TestAlertRequest):
+    """Dispatches a live test SMS or WhatsApp alert to verify phone delivery."""
+    result = await dispatch_phone_alert(
+        recipient_name=body.name,
+        phone=body.phone,
+        channel=body.channel,
+        message=body.message,
+        alert_type="TEST-" + body.channel.upper(),
+    )
+    return {"status": "dispatched", "channel": body.channel, "recipient": body.phone, "result": result}
+
+
+@app.post("/incidents/{incident_id}/escalate")
+def manual_escalate(incident_id: str):
+    """Manually triggers immediate escalation of an incident to Operations Head."""
+    ops_head = get_ops_head()
+    escalated = escalate_incident_record(incident_id, ops_head)
+    if not escalated:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    
+    try:
+        append_audit_log(
+            incident_id=incident_id,
+            event_type="escalated_to_ops_head",
+            content={
+                "escalation_level": 1,
+                "assigned_to": ops_head.get("name"),
+                "role": ops_head.get("role"),
+                "manual_trigger": True,
+                "reason": "Manual Escalation Invocation by Command Controller",
+            }
+        )
+    except Exception:
+        pass
+
+@app.post("/incidents/reset-active")
+def reset_active_incidents():
+    """Resets pending diagnosed incidents so reloaded app starts nominal."""
+    clear_pending_incidents()
+    return {"status": "nominal", "message": "Pending incidents cleared on startup"}
+

@@ -52,6 +52,48 @@ def init_db():
         )
     """)
 
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS operators (
+            id TEXT PRIMARY KEY,
+            name TEXT NOT NULL,
+            role TEXT NOT NULL,
+            on_duty INTEGER DEFAULT 0,
+            contact_email TEXT NOT NULL,
+            phone TEXT NOT NULL,
+            shift_time TEXT NOT NULL,
+            title TEXT NOT NULL,
+            icon TEXT DEFAULT '👤'
+        )
+    """)
+
+    # Alter table if existing without phone
+    try:
+        cur.execute("ALTER TABLE operators ADD COLUMN phone TEXT DEFAULT '+1-555-0199'")
+    except Exception:
+        pass
+
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS system_config (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    """)
+
+    # Seed default config
+    cur.execute("INSERT OR IGNORE INTO system_config (key, value) VALUES ('escalation_sla_seconds', '20')")
+
+    # Seed default shift operators & operations head with phone numbers
+    default_operators = [
+        ("op-1", "Marcus Vance", "shift_operator", 1, "marcus.vance@sentinel-grid.org", "+91 9729280478", "9:00 AM – 5:00 PM", "Lead Systems Engineer", "🌅"),
+        ("op-2", "Elena Rostova", "shift_operator", 0, "elena.rostova@sentinel-grid.org", "+1 (555) 345-6789", "5:00 PM – 1:00 AM", "Critical Infrastructure Specialist", "🌆"),
+        ("op-3", "Devon Chen", "shift_operator", 0, "devon.chen@sentinel-grid.org", "+1 (555) 456-7890", "1:00 AM – 9:00 AM", "Safety & Safeguards Overseer", "🌌"),
+        ("head-1", "Dr. Sarah Sterling", "ops_head", 1, "sarah.sterling@sentinel-grid.org", "+91 9729280478", "24/7 Operations Oversight", "Head of Mission Operations", "🎖️"),
+    ]
+    cur.executemany(
+        "INSERT OR REPLACE INTO operators (id, name, role, on_duty, contact_email, phone, shift_time, title, icon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        default_operators
+    )
+
     conn.commit()
     conn.close()
 
@@ -307,4 +349,167 @@ def get_all_trust_scores() -> list[dict]:
             "auto_pilot_enabled": bool(s["auto_pilot_enabled"]),
         })
     return result
+
+
+# ---------- Operator & Escalation Management ----------
+
+def get_operators() -> list[dict]:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM operators ORDER BY role DESC, id ASC")
+    rows = cur.fetchall()
+    conn.close()
+    return [
+        {
+            "id": r["id"],
+            "name": r["name"],
+            "role": r["role"],
+            "on_duty": bool(r["on_duty"]),
+            "contact_email": r["contact_email"],
+            "phone": r["phone"] if "phone" in r.keys() else "+1 (555) 0199",
+            "shift_time": r["shift_time"],
+            "title": r["title"],
+            "icon": r["icon"],
+        }
+        for r in rows
+    ]
+
+
+def set_operator_duty(operator_id: str, on_duty: bool):
+    conn = get_connection()
+    cur = conn.cursor()
+    
+    # If activating a shift operator, ensure other shift operators are toggled off for clean single-shift duty
+    cur.execute("SELECT role FROM operators WHERE id = ?", (operator_id,))
+    row = cur.fetchone()
+    if row and row["role"] == "shift_operator" and on_duty:
+        cur.execute("UPDATE operators SET on_duty = 0 WHERE role = 'shift_operator'")
+
+    cur.execute("UPDATE operators SET on_duty = ? WHERE id = ?", (1 if on_duty else 0, operator_id))
+    conn.commit()
+    conn.close()
+
+
+def update_operator_phone(operator_id: str, phone: str):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE operators SET phone = ? WHERE id = ?", (phone, operator_id))
+    conn.commit()
+    conn.close()
+
+
+def get_active_shift_operator() -> dict:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM operators WHERE role = 'shift_operator' AND on_duty = 1 LIMIT 1")
+    row = cur.fetchone()
+    if not row:
+        cur.execute("SELECT * FROM operators WHERE role = 'shift_operator' LIMIT 1")
+        row = cur.fetchone()
+    conn.close()
+    if row:
+        return dict(row)
+    return {
+        "id": "op-1",
+        "name": "Marcus Vance",
+        "role": "shift_operator",
+        "contact_email": "marcus.vance@sentinel-grid.org",
+        "shift_time": "9:00 AM – 5:00 PM",
+        "title": "Lead Systems Engineer",
+        "icon": "🌅",
+    }
+
+
+def get_ops_head() -> dict:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM operators WHERE role = 'ops_head' LIMIT 1")
+    row = cur.fetchone()
+    conn.close()
+    if row:
+        return dict(row)
+    return {
+        "id": "head-1",
+        "name": "Dr. Sarah Sterling",
+        "role": "ops_head",
+        "contact_email": "sarah.sterling@sentinel-grid.org",
+        "shift_time": "24/7 Operations Oversight",
+        "title": "Head of Mission Operations",
+        "icon": "🎖️",
+    }
+
+
+def get_escalation_sla_seconds() -> int:
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT value FROM system_config WHERE key = 'escalation_sla_seconds'")
+    row = cur.fetchone()
+    conn.close()
+    try:
+        return int(row["value"]) if row else 20
+    except (ValueError, TypeError):
+        return 20
+
+
+def set_escalation_sla_seconds(seconds: int):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT OR REPLACE INTO system_config (key, value) VALUES ('escalation_sla_seconds', ?)",
+        (str(max(5, seconds)),)
+    )
+    conn.commit()
+    conn.close()
+
+
+def get_unresolved_incidents_older_than(sla_seconds: int) -> list[dict]:
+    """Returns incidents that are diagnosed/pending, have escalation_level == 0, and exceeded SLA seconds."""
+    all_incidents = get_all_incidents()
+    now = datetime.now(timezone.utc)
+    overdue = []
+    
+    for inc in all_incidents:
+        status = inc.get("status")
+        # Only escalate un-resolved/active diagnosed incidents
+        if status in ("diagnosed", "pending_approval", "pending_rule_match", "active"):
+            escalation_level = inc.get("escalation_level", 0)
+            if escalation_level == 0:
+                triggered_at_str = inc.get("triggered_at")
+                if triggered_at_str:
+                    try:
+                        triggered_at = datetime.fromisoformat(triggered_at_str)
+                        if triggered_at.tzinfo is None:
+                            triggered_at = triggered_at.replace(tzinfo=timezone.utc)
+                        elapsed = (now - triggered_at).total_seconds()
+                        if elapsed >= sla_seconds:
+                            overdue.append(inc)
+                    except Exception:
+                        pass
+    return overdue
+
+
+def escalate_incident_record(incident_id: str, ops_head: dict) -> dict | None:
+    """Updates incident to escalation_level 1 and assigns to Ops Head."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT data FROM incidents WHERE id = ?", (incident_id,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        return None
+
+    inc = json.loads(row["data"])
+    now_iso = datetime.now(timezone.utc).isoformat()
+    inc["escalation_level"] = 1
+    inc["escalated_at"] = now_iso
+    inc["assigned_operator_id"] = ops_head.get("id", "head-1")
+    inc["assigned_operator_name"] = ops_head.get("name", "Dr. Sarah Sterling")
+    inc["assigned_operator_role"] = ops_head.get("role", "ops_head")
+    inc["escalation_reason"] = "SLA Resolution Threshold Exceeded without Operator Action"
+
+    cur.execute("UPDATE incidents SET data = ? WHERE id = ?", (json.dumps(inc), incident_id))
+    conn.commit()
+    conn.close()
+    return inc
+
     

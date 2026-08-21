@@ -8,7 +8,7 @@ import TrustScorePanel from "../TrustScorePanel";
 import StatCards from "../StatCards";
 import CrossExaminationPanel from "../CrossExaminationPanel";
 
-function ActiveIncidentHero({ incident }) {
+function ActiveIncidentHero({ incident, onManualEscalate }) {
   const sevColor = {
     critical: "#B84040",
     high: "#C0562A",
@@ -44,12 +44,15 @@ function ActiveIncidentHero({ incident }) {
   }
 
   const systemName = incident.source?.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) || "Unknown System";
+  const isEscalated = incident.escalation_level === 1;
 
   return (
-    <div className="mb-2 p-6 sm:p-8 rounded-3xl bg-white/90 border border-slate-200/80 shadow-sm relative overflow-hidden">
+    <div className={`mb-2 p-6 sm:p-8 rounded-3xl border shadow-sm relative overflow-hidden transition-all ${
+      isEscalated ? "bg-purple-50/70 border-purple-300 ring-2 ring-purple-400/30" : "bg-white/90 border-slate-200/80"
+    }`}>
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
-          <div className="flex items-center gap-3 mb-3">
+          <div className="flex flex-wrap items-center gap-3 mb-3">
             <span
               className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-widest border"
               style={{ background: `${sevColor}12`, color: sevColor, borderColor: `${sevColor}30` }}
@@ -57,6 +60,16 @@ function ActiveIncidentHero({ incident }) {
               <span className="w-2 h-2 rounded-full animate-critical" style={{ backgroundColor: sevColor, display: "inline-block" }} />
               {(incident.severity || "").toUpperCase()} SEVERITY INCIDENT
             </span>
+
+            {isEscalated ? (
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-purple-600 text-white shadow-xs animate-pulse">
+                <span>🚨</span> ESCALATED TO OPERATIONS HEAD
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                <span>👤</span> ASSIGNED TO SHIFT OPERATOR
+              </span>
+            )}
           </div>
 
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight" style={{ letterSpacing: "-0.02em" }}>
@@ -64,22 +77,39 @@ function ActiveIncidentHero({ incident }) {
           </h2>
           <p className="text-base font-semibold text-slate-600 mt-2 max-w-2xl">{incident.evidence}</p>
 
-          <p className="text-xs font-mono text-slate-400 mt-3 font-semibold">
-            Triggered at: {new Date(incident.triggered_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-          </p>
+          <div className="flex flex-wrap items-center gap-4 mt-3 text-xs font-semibold">
+            <span className="font-mono text-slate-500">
+              Triggered: {new Date(incident.triggered_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+            </span>
+            <span className="text-slate-300">•</span>
+            <span className="text-slate-700">
+              Assigned Handler: <strong className={isEscalated ? "text-purple-800" : "text-amber-800"}>{incident.assigned_operator_name || "Marcus Vance"}</strong>
+              <span className="ml-1 text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-700">
+                {incident.assigned_operator_role === "ops_head" ? "Tier 2 · Ops Head" : "Tier 1 · Shift Op"}
+              </span>
+            </span>
+            {!isEscalated && onManualEscalate && (
+              <button
+                onClick={() => onManualEscalate(incident.id)}
+                className="px-2.5 py-1 rounded-lg bg-purple-100 hover:bg-purple-600 hover:text-white text-purple-900 border border-purple-300 text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer"
+              >
+                ⚡ Escalate to Ops Head Now
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Highlight Stats Block */}
         <div className="shrink-0 grid grid-cols-2 gap-4 bg-slate-50/80 border border-slate-200/80 p-5 rounded-2xl min-w-[260px]">
           {[
             { label: "AI Confidence", value: `${incident.confidence}%` },
-            { label: "Escalation Risk", value: "82%" },
+            { label: "Escalation Tier", value: isEscalated ? "Tier 2 (Ops Head)" : "Tier 1 (Shift Op)" },
             { label: "Matched Rule", value: incident.rule_id },
-            { label: "Target Source", value: incident.source },
+            { label: "Assigned To", value: incident.assigned_operator_name ? incident.assigned_operator_name.split(" ")[0] : "Operator" },
           ].map(({ label, value }) => (
             <div key={label} className="bg-white p-3 rounded-xl border border-slate-100 shadow-2xs">
               <p className="text-[10.5px] uppercase tracking-wider font-extrabold text-slate-400">{label}</p>
-              <p className="text-base font-mono font-bold text-slate-900 mt-0.5">{value}</p>
+              <p className="text-base font-mono font-bold text-slate-900 mt-0.5 truncate">{value}</p>
             </div>
           ))}
         </div>
@@ -90,7 +120,7 @@ function ActiveIncidentHero({ incident }) {
 
 export default function OverviewTab({
   activeIncident, trustScores, healthCheck, stats, scenario,
-  onApprove, onReject, onModify, onUndo, notice, loadError,
+  onApprove, onReject, onModify, onUndo, onManualEscalate, notice, loadError,
 }) {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
@@ -110,7 +140,7 @@ export default function OverviewTab({
           )}
 
           {/* Active Incident Hero Banner */}
-          <ActiveIncidentHero incident={activeIncident} />
+          <ActiveIncidentHero incident={activeIncident} onManualEscalate={onManualEscalate} />
 
           {/* Stat Cards Row */}
           <div>

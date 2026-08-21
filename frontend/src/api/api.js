@@ -1,11 +1,9 @@
 import { mockTrustScores, mockHealthCheck, mockStats } from "../data/mockData";
 
-const BASE_URL = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+const BASE_URL = typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1" || window.location.port === "5173" || window.location.port === "5174")
   ? "http://localhost:8000"
   : "https://sih-fawk.onrender.com";
 
-// Trust Score / Health Check / Stats endpoints don't exist until Phase 5 —
-// stay mocked here on purpose so Phase 4 doesn't block waiting on them.
 const MOCK_PHASE5 = false;
 
 export async function simulateIncident(sensor, value) {
@@ -14,18 +12,24 @@ export async function simulateIncident(sensor, value) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ sensor, value }),
   });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: "Simulation request failed" }));
+    throw { status: res.status, detail: err.detail || "Simulation server error" };
+  }
   const data = await res.json();
   if (!data.matched) throw { status: 204, detail: "No rule matched this reading" };
 
   const diagRes = await fetch(`${BASE_URL}/diagnose/${data.incident.id}`, { method: "POST" });
+  if (!diagRes.ok) {
+    const err = await diagRes.json().catch(() => ({ detail: "Diagnosis failed" }));
+    throw { status: diagRes.status, detail: err.detail || "Diagnosis failed" };
+  }
   const diagnosed = await diagRes.json();
 
-  // Phase 1 (Red Team): trigger Cross-Examination automatically right after
-  // diagnose, so it reads as part of one continuous reasoning flow rather
-  // than a separate button. Never blocks the main flow if it fails.
   try {
     return await crossExamine(diagnosed.id);
-  } catch {
+  } catch (ceErr) {
+    console.warn("Cross examination optional step error:", ceErr);
     return diagnosed;
   }
 }
@@ -39,10 +43,14 @@ export async function crossExamine(incidentId) {
   return res.json();
 }
 
+export async function resetActiveIncidents() {
+  const res = await fetch(`${BASE_URL}/incidents/reset-active`, { method: "POST" });
+  return res.json();
+}
+
 export async function getActiveIncident() {
   const res = await fetch(`${BASE_URL}/incidents`);
   const all = await res.json();
-  // Most recently triggered incident that's still awaiting a decision
   const pending = all.filter((i) => i.status === "diagnosed");
   if (pending.length === 0) return null;
   return pending.sort((a, b) => new Date(b.triggered_at) - new Date(a.triggered_at))[0];
@@ -174,4 +182,70 @@ export async function deleteScenario(scId) {
   return res.json();
 }
 
+export async function getOperators() {
+  const res = await fetch(`${BASE_URL}/operators`);
+  if (!res.ok) throw new Error("Failed to fetch operators");
+  return res.json();
+}
 
+export async function setOperatorDuty(opId, onDuty) {
+  const res = await fetch(`${BASE_URL}/operators/${opId}/duty`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ on_duty: onDuty }),
+  });
+  if (!res.ok) throw new Error("Failed to update operator duty");
+  return res.json();
+}
+
+export async function getEscalationConfig() {
+  const res = await fetch(`${BASE_URL}/config/escalation`);
+  if (!res.ok) throw new Error("Failed to fetch escalation config");
+  return res.json();
+}
+
+export async function updateEscalationConfig(slaSeconds) {
+  const res = await fetch(`${BASE_URL}/config/escalation`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ sla_seconds: slaSeconds }),
+  });
+  if (!res.ok) throw new Error("Failed to update escalation SLA");
+  return res.json();
+}
+
+export async function manualEscalateIncident(incidentId) {
+  const res = await fetch(`${BASE_URL}/incidents/${incidentId}/escalate`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw { status: res.status, detail: err.detail || "Failed to escalate incident" };
+  }
+  return res.json();
+}
+
+export async function updateOperatorPhone(opId, phone) {
+  const res = await fetch(`${BASE_URL}/operators/${opId}/phone`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ phone }),
+  });
+  if (!res.ok) throw new Error("Failed to update operator phone number");
+  return res.json();
+}
+
+export async function sendTestPhoneAlert(phone, name = "Operator", channel = "sms", message = "") {
+  const res = await fetch(`${BASE_URL}/alerts/test-phone`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name,
+      phone,
+      channel,
+      message: message || `🚨 [SENTINEL ALERT] Real-time anomaly test to ${name}. Telemetry nominal.`,
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to dispatch test alert");
+  return res.json();
+}

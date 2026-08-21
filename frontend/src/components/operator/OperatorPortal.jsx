@@ -7,6 +7,7 @@ import {
   addNewScenario,
   loadScenario,
   deleteScenario,
+  setOperatorDuty,
 } from "../../api/api";
 
 const PRELOADED_DEFAULTS = {
@@ -129,7 +130,49 @@ const PRELOADED_DEFAULTS = {
   ]
 };
 
-export default function OperatorPortal({ currentScenario, onSwitchScenario, onExit }) {
+const SHIFT_OPERATORS = [
+  {
+    id: "shift-1",
+    name: "Marcus Vance",
+    role: "Lead Systems Engineer",
+    shiftTime: "9:00 AM – 5:00 PM",
+    shiftLabel: "Day Shift (Alpha)",
+    icon: "🌅",
+    color: "from-amber-500 to-orange-500",
+    status: "Primary Control Room",
+    badge: "Senior Operator",
+  },
+  {
+    id: "shift-2",
+    name: "Elena Rostova",
+    role: "Critical Infrastructure Specialist",
+    shiftTime: "5:00 PM – 1:00 AM",
+    shiftLabel: "Evening Shift (Bravo)",
+    icon: "🌆",
+    color: "from-indigo-500 to-purple-600",
+    status: "Auxiliary Telemetry Node",
+    badge: "Operations Lead",
+  },
+  {
+    id: "shift-3",
+    name: "Devon Chen",
+    role: "Safety & Safeguards Overseer",
+    shiftTime: "1:00 AM – 9:00 AM",
+    shiftLabel: "Night Shift (Charlie)",
+    icon: "🌌",
+    color: "from-cyan-600 to-blue-700",
+    status: "Emergency Response Hub",
+    badge: "Safety Inspector",
+  },
+];
+
+export default function OperatorPortal({
+  currentScenario,
+  onSwitchScenario,
+  onExit,
+  activeShiftOperator = "Marcus Vance",
+  onSelectOperator,
+}) {
   const [scenarios, setScenarios] = useState([]);
   const [selectedScenario, setSelectedScenario] = useState(null);
   const [scenarioRules, setScenarioRules] = useState([]);
@@ -605,6 +648,130 @@ export default function OperatorPortal({ currentScenario, onSwitchScenario, onEx
             </div>
           </div>
         )}
+
+        {/* Shift Operators Section */}
+        <div className="pt-6 border-t border-slate-200/90 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Shift Operators</h3>
+                <span className="px-2.5 py-0.5 rounded-full bg-amber-100 border border-amber-300 text-amber-900 text-[10px] font-extrabold uppercase tracking-wider">
+                  24/7 Rotational Roster
+                </span>
+              </div>
+              <p className="text-xs font-bold text-slate-600 mt-1">
+                Select the operator currently on duty to supervise the incident response engine, verify critical actions, and log telemetry decisions.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 self-start sm:self-auto bg-white px-3.5 py-1.5 rounded-2xl border border-slate-200 shadow-2xs">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-extrabold text-slate-700">
+                Active On Duty: <span className="text-amber-800 font-black">{activeShiftOperator}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* 3 Shift Operators Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {SHIFT_OPERATORS.map((op) => {
+              const isSelected = activeShiftOperator === op.name;
+              return (
+                <div
+                  key={op.id}
+                  onClick={async () => {
+                    if (onSelectOperator) onSelectOperator(op.name);
+                    const backendOpId = op.id === "shift-1" ? "op-1" : op.id === "shift-2" ? "op-2" : "op-3";
+                    try {
+                      await setOperatorDuty(backendOpId, true);
+                    } catch {}
+                  }}
+                  className={`p-6 rounded-3xl border transition-all duration-300 flex flex-col justify-between cursor-pointer relative overflow-hidden group shadow-xs hover:shadow-md ${
+                    isSelected
+                      ? "bg-white border-2 border-amber-500 shadow-md ring-4 ring-amber-500/10"
+                      : "bg-white/90 border-slate-300/80 hover:border-amber-400 hover:bg-white"
+                  }`}
+                >
+                  {/* Top Bar inside Card */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${op.color} flex items-center justify-center text-white text-lg font-black shadow-xs group-hover:scale-105 transition-transform`}>
+                          {op.name.split(" ").map((n) => n[0]).join("")}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">{op.icon}</span>
+                            <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+                              {op.shiftLabel}
+                            </span>
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-600">{op.badge}</span>
+                        </div>
+                      </div>
+
+                      {isSelected ? (
+                        <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[11px] font-black uppercase tracking-wider flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                          On Shift
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            if (onSelectOperator) onSelectOperator(op.name);
+                            const backendOpId = op.id === "shift-1" ? "op-1" : op.id === "shift-2" ? "op-2" : "op-3";
+                            try {
+                              await setOperatorDuty(backendOpId, true);
+                            } catch {}
+                          }}
+                          className="px-3 py-1 rounded-full bg-slate-100 hover:bg-amber-600 hover:text-white text-slate-700 border border-slate-300/80 text-[11px] font-extrabold uppercase tracking-wider transition-colors cursor-pointer"
+                        >
+                          Select Shift
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Operator Name & Role */}
+                    <h4 className="text-xl font-black text-slate-900 tracking-tight group-hover:text-amber-800 transition-colors">
+                      {op.name}
+                    </h4>
+                    <p className="text-xs font-semibold text-slate-600 mt-0.5">
+                      {op.role}
+                    </p>
+
+                    {/* Shift Time Badge */}
+                    <div className="mt-4 p-3 rounded-2xl bg-amber-50/60 border border-amber-200/80 flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-slate-700">
+                        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" className="text-amber-700">
+                          <circle cx="12" cy="12" r="10" />
+                          <polyline points="12 6 12 12 16 14" />
+                        </svg>
+                        <span className="text-xs font-black font-mono text-slate-800">
+                          {op.shiftTime}
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-extrabold text-amber-800 uppercase tracking-widest">
+                        8h Shift
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Footer node */}
+                  <div className="mt-6 pt-4 border-t border-slate-200 flex items-center justify-between">
+                    <span className="text-[11px] font-mono font-bold text-slate-600 flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${isSelected ? "bg-emerald-500" : "bg-slate-300"}`} />
+                      {op.status}
+                    </span>
+                    <span className={`text-xs font-black ${isSelected ? "text-amber-800" : "text-slate-600 group-hover:text-slate-900"}`}>
+                      {isSelected ? "✓ Active Operator" : "Click to assign →"}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </main>
 
       {/* Scenario Rule File Inspector & Uploader Drawer / Modal */}
