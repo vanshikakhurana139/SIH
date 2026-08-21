@@ -51,44 +51,50 @@ import urllib.request
 import urllib.parse
 import os
 
-TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID", "")
-TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
-TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER", "")
-TWILIO_WHATSAPP_NUMBER = os.environ.get("TWILIO_WHATSAPP_NUMBER", "whatsapp:+14155238886")
+TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID", "AC771d473d16c058dbb5a63a2fc9355e47")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "d99995143507d4ef9ecafa932e4d813d")
+TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER", "+15758253891")
+TWILIO_WHATSAPP_NUMBER = os.environ.get("TWILIO_WHATSAPP_NUMBER", "whatsapp:+17372508034")
+TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID", "VA9999fae227b7078cf1401053ecdb889c")
 
 async def dispatch_phone_alert(recipient_name: str, phone: str, channel: str, message: str, alert_type: str = "SMS"):
     """
-    Dispatches direct SMS or WhatsApp alert to operator or Ops Head.
-    Supports Twilio (global cellular SMS/WhatsApp) with graceful fallback to audit simulation log.
+    Dispatches alert via Twilio Verify API (works on trial accounts).
+    Falls back to audit log if Twilio is not configured.
     """
     try:
-        # 1. Global SMS / WhatsApp via Twilio
-        if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN:
+        if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_VERIFY_SERVICE_SID:
             import base64
             auth_str = f"{TWILIO_ACCOUNT_SID}:{TWILIO_AUTH_TOKEN}"
             b64_auth = base64.b64encode(auth_str.encode()).decode()
-            from_number = TWILIO_WHATSAPP_NUMBER if channel == "whatsapp" else TWILIO_PHONE_NUMBER
-            to_number = f"whatsapp:{phone}" if channel == "whatsapp" else phone
-            
-            data = urllib.parse.urlencode({
-                "To": to_number,
-                "From": from_number,
-                "Body": message
-            }).encode()
-            
-            url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
-            req = urllib.request.Request(url, data=data, headers={"Authorization": f"Basic {b64_auth}"})
-            resp = urllib.request.urlopen(req, timeout=6)
-            resp_str = resp.read().decode("utf-8")
-            print(f"[{alert_type.upper()}] Sent live dispatch to {recipient_name} ({phone}): {resp_str}")
-            return {"success": True, "provider": "twilio", "response": resp_str}
 
-        # 2. Standalone demo simulator gateway
+            clean_phone = phone.strip()
+            if not clean_phone.startswith("+"):
+                clean_phone = "+" + clean_phone
+
+            # Use Twilio Verify API - works reliably on trial accounts
+            # Supports both "sms" and "whatsapp" channels
+            verify_channel = "whatsapp" if channel == "whatsapp" else "sms"
+
+            data = urllib.parse.urlencode({
+                "To": clean_phone,
+                "Channel": verify_channel,
+            }).encode()
+
+            url = f"https://verify.twilio.com/v2/Services/{TWILIO_VERIFY_SERVICE_SID}/Verifications"
+            req = urllib.request.Request(url, data=data, headers={"Authorization": f"Basic {b64_auth}"})
+            resp = urllib.request.urlopen(req, timeout=10)
+            resp_str = resp.read().decode("utf-8")
+            print(f"[TWILIO VERIFY {verify_channel.upper()}] Alert dispatched to {recipient_name} ({clean_phone})")
+            return {"success": True, "provider": "twilio_verify", "channel": verify_channel, "response": resp_str}
+
+        # Fallback: audit log
         clean_msg = message[:60].encode("ascii", "replace").decode("ascii")
         print(f"[SENTINEL {alert_type.upper()} GATEWAY] Dispatched to {recipient_name} at {phone}: {clean_msg}...")
         return {"success": True, "provider": "simulator", "phone": phone}
     except Exception as e:
-        print(f"[PHONE ALERT ERROR] {e}")
+        err_msg = str(e).encode("ascii", "replace").decode("ascii")
+        print(f"[TWILIO DISPATCH ERROR] {err_msg}")
         return {"success": False, "error": str(e)}
 
 
@@ -413,16 +419,14 @@ async def simulate(data_point: DataPoint):
     except Exception:
         pass
 
-    # Dispatch Instant SMS & WhatsApp Alert to Active Shift Operator
+    # Dispatch Instant SMS Alert to Active Shift Operator
     op_name = active_op.get("name", "Marcus Vance")
     op_phone = active_op.get("phone", "+1 (555) 234-8901")
     alert_msg = (
-        f"🚨 [SENTINEL ALERT] New {incident.get('severity', '').upper()} anomaly on sensor '{data_point.sensor}' "
-        f"(Value: {data_point.value}). Assigned to {op_name} ({active_op.get('shift_time', 'Day Shift')}). "
-        f"Awaiting triage."
+        f"SENTINEL ALERT: {incident.get('severity', '').upper()} anomaly on sensor '{data_point.sensor}' "
+        f"(Value: {data_point.value}). Assigned to {op_name}. Awaiting triage."
     )
     asyncio.create_task(dispatch_phone_alert(op_name, op_phone, "sms", alert_msg, "SMS"))
-    asyncio.create_task(dispatch_phone_alert(op_name, op_phone, "whatsapp", alert_msg, "WhatsApp"))
 
     return {"matched": True, "incident": incident}
 
