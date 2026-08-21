@@ -79,6 +79,11 @@ export default function App() {
 
   useEffect(() => {
     const fetchInitial = async () => {
+      try {
+        await loadScenario(scenario);
+      } catch (err) {
+        console.error("Initial scenario load:", err);
+      }
       await refreshAll();
     };
     fetchInitial();
@@ -95,6 +100,8 @@ export default function App() {
   async function handleSimulate(sensor, value) {
     setLoading(true);
     try {
+      // Ensure the active scenario's rules are loaded in the backend rule engine before simulate
+      await loadScenario(scenario);
       await simulateIncident(sensor, value);
       await refreshAll();
       flash(`✓ Sensor ${sensor} injected at ${value}. AI diagnosis complete.`);
@@ -241,7 +248,12 @@ export default function App() {
       {/* Body: sidebar + content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <CmdSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+        <CmdSidebar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          incidents={incidents}
+          onOpenOperator={handleOpenOperator}
+        />
 
         {/* Main content area */}
         <div className="flex flex-col flex-1 overflow-hidden">

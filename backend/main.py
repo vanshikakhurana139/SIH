@@ -42,6 +42,22 @@ app.add_middleware(
 init_db()
 clear_pending_incidents()
 
+# Ensure default powerplant rules are initialized on startup
+def _init_default_scenario():
+    global ACTIVE_SCENARIO
+    path = Path(__file__).parent / "rules_powerplant.json"
+    if path.exists():
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                rules = json.load(f)
+            clear_rules()
+            save_rules(rules)
+            ACTIVE_SCENARIO = "powerplant"
+        except Exception:
+            pass
+
+_init_default_scenario()
+
 
 class DataPoint(BaseModel):
     sensor: str
