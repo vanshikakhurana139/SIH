@@ -57,7 +57,6 @@ function ActiveIncidentHero({ incident }) {
               <span className="w-2 h-2 rounded-full animate-critical" style={{ backgroundColor: sevColor, display: "inline-block" }} />
               {(incident.severity || "").toUpperCase()} SEVERITY INCIDENT
             </span>
-            <span className="text-xs font-mono font-bold text-slate-400">ID: {incident.id}</span>
           </div>
 
           <h2 className="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 leading-tight" style={{ letterSpacing: "-0.02em" }}>
