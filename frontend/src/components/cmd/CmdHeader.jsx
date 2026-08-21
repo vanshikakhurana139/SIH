@@ -14,7 +14,16 @@ function Clock() {
   );
 }
 
-export default function CmdHeader({ scenario, onSwitchScenario, onOpenOperator }) {
+export default function CmdHeader({ scenario, onSwitchScenario, onOpenOperator, activeIncident }) {
+  const isTriggered = activeIncident && (activeIncident.status === "diagnosed" || activeIncident.status === "pending_approval");
+  const sev = activeIncident?.severity || "critical";
+  const sevColor = {
+    critical: "#B84040",
+    high: "#C0562A",
+    medium: "#B07B2E",
+    low: "#2D6A9E",
+  }[sev] || "#B84040";
+
   return (
     <header className="header-glass flex items-center justify-between px-6 sm:px-8 py-4 shrink-0 z-20 border-b border-slate-200/80 bg-white/95">
       {/* Left */}
@@ -60,11 +69,47 @@ export default function CmdHeader({ scenario, onSwitchScenario, onOpenOperator }
 
       {/* Right */}
       <div className="flex items-center gap-5">
-        {/* System status pill */}
-        <div className="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
-          <span className="live-dot flex-shrink-0" style={{ backgroundColor: "#2D7A5A", width: 9, height: 9, borderRadius: "50%", display: "inline-block" }} />
-          <span className="text-xs font-extrabold font-mono tracking-wider">SYSTEM NOMINAL</span>
-        </div>
+        {/* System status pill (Dynamic) */}
+        {isTriggered ? (
+          <div
+            className="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border shadow-2xs animate-pulse"
+            style={{
+              backgroundColor: `${sevColor}12`,
+              borderColor: `${sevColor}40`,
+              color: sevColor,
+            }}
+          >
+            <span
+              className="live-dot flex-shrink-0 animate-critical"
+              style={{
+                backgroundColor: sevColor,
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                display: "inline-block",
+              }}
+            />
+            <span className="text-xs font-black font-mono tracking-wider">
+              {sev.toUpperCase()} ANOMALY DETECTED
+            </span>
+          </div>
+        ) : (
+          <div className="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
+            <span
+              className="live-dot flex-shrink-0"
+              style={{
+                backgroundColor: "#2D7A5A",
+                width: 9,
+                height: 9,
+                borderRadius: "50%",
+                display: "inline-block",
+              }}
+            />
+            <span className="text-xs font-extrabold font-mono tracking-wider">
+              SYSTEM NOMINAL
+            </span>
+          </div>
+        )}
 
         <div className="hidden sm:block w-px h-8 bg-slate-200" />
 

@@ -242,7 +242,12 @@ export default function App() {
   return (
     <div className="flex flex-col w-screen h-screen overflow-hidden" style={{ background: "var(--color-ivory)" }}>
       {/* Top header */}
-      <CmdHeader scenario={scenario} onSwitchScenario={handleSwitchScenario} onOpenOperator={handleOpenOperator} />
+      <CmdHeader
+        scenario={scenario}
+        onSwitchScenario={handleSwitchScenario}
+        onOpenOperator={handleOpenOperator}
+        activeIncident={activeIncident}
+      />
 
 
       {/* Body: sidebar + content */}
