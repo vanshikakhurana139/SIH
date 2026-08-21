@@ -120,10 +120,16 @@ export default function OverviewTab({
 
           {/* Main 12-Column Responsive Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            {/* LEFT / MAIN PANEL — 8 columns on desktop */}
+            {/* LEFT / MAIN PANEL — 8 columns on desktop (Higher Priority) */}
             <div className="lg:col-span-8 flex flex-col gap-8 min-w-0">
               <Environment3D scenario={scenario} incident={activeIncident} />
-              <LiveSignals incident={activeIncident} scenario={scenario} />
+              <RecommendedResponse
+                incident={activeIncident}
+                onApprove={onApprove}
+                onReject={onReject}
+                onModify={onModify}
+                onUndo={onUndo}
+              />
               {/* Feature A: Adversarial Consensus Engine ("Red Team") */}
               <CrossExaminationPanel incident={activeIncident} />
               <AskSystemChat incident={activeIncident} />
@@ -132,13 +138,7 @@ export default function OverviewTab({
             {/* RIGHT / SIDE PANEL — 4 columns on desktop */}
             <div className="lg:col-span-4 flex flex-col gap-8 min-w-0">
               <AiInterpretation incident={activeIncident} />
-              <RecommendedResponse
-                incident={activeIncident}
-                onApprove={onApprove}
-                onReject={onReject}
-                onModify={onModify}
-                onUndo={onUndo}
-              />
+              <LiveSignals incident={activeIncident} scenario={scenario} />
               <TrustScorePanel trustScores={trustScores} />
               <IncidentImpact incident={activeIncident} scenario={scenario} />
             </div>
