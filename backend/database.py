@@ -105,6 +105,22 @@ def get_all_incidents() -> list[dict]:
     conn.close()
     return [json.loads(row["data"]) for row in rows]
 
+
+def clear_pending_incidents():
+    """Resolves or clears unhandled pending/diagnosed incidents on startup so app boots in nominal state."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT id, data FROM incidents")
+    rows = cur.fetchall()
+    for row in rows:
+        inc = json.loads(row["data"])
+        if inc.get("status") in ("diagnosed", "pending_approval", "pending_rule_match"):
+            inc["status"] = "resolved"
+            inc["resolved_at"] = datetime.now(timezone.utc).isoformat()
+            cur.execute("UPDATE incidents SET data = ? WHERE id = ?", (json.dumps(inc), inc["id"]))
+    conn.commit()
+    conn.close()
+
 def get_rule_by_id(rule_id: str) -> dict | None:
     conn = get_connection()
     cur = conn.cursor()

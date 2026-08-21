@@ -16,6 +16,7 @@ from database import (
     append_audit_log, get_audit_log, verify_audit_chain,
     get_all_trust_scores, enable_autopilot,
     get_audit_events_for_rule,
+    clear_pending_incidents,
 )
 from rule_engine import match_data_point
 
@@ -39,6 +40,7 @@ app.add_middleware(
 
 # Create the DB tables on startup if they don't exist yet
 init_db()
+clear_pending_incidents()
 
 
 class DataPoint(BaseModel):

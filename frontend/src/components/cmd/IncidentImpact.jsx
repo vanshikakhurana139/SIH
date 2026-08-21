@@ -24,7 +24,8 @@ export default function IncidentImpact({ incident, scenario }) {
     intervalRef.current = setInterval(() => {
       const secs = Math.floor((Date.now() - start) / 1000);
       setElapsed(secs);
-      const currentCost = isHospital ? Math.floor(secs / 10) : Math.floor(secs / 5) * 10;
+      // 100 Rs every minute (100 / 60 per second)
+      const currentCost = Math.floor((secs * 100) / 60);
       setHistory((h) => [...h, { t: secs, cost: currentCost }].slice(-24));
     }, 1000);
 
@@ -33,9 +34,9 @@ export default function IncidentImpact({ incident, scenario }) {
 
   if (!incident) return null;
 
-  const isHospital = scenario === "hospital";
-  const cost = isHospital ? Math.floor(elapsed / 10) : Math.floor(elapsed / 5) * 10;
-  const rateLabel = isHospital ? "$1/10s burn" : "$10/5s burn";
+  // 100 Rs every minute
+  const cost = Math.floor((elapsed * 100) / 60);
+  const rateLabel = "₹100/min burn";
   const isActive = incident.status === "diagnosed" || incident.status === "pending_approval";
   const chartData = history.length ? history : [{ t: 0, cost: 0 }];
 
@@ -56,7 +57,7 @@ export default function IncidentImpact({ incident, scenario }) {
       </div>
 
       <p className="text-4xl sm:text-5xl font-black font-display text-rose-700 tabular-nums leading-none my-4 tracking-tight">
-        ${cost.toLocaleString()}
+        ₹{cost.toLocaleString()}
       </p>
       <p className="text-xs font-bold text-slate-500 mb-4">Estimated Exposure Risk</p>
 
