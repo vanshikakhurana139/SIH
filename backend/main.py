@@ -52,7 +52,7 @@ import urllib.parse
 import os
 
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID", "AC771d473d16c058dbb5a63a2fc9355e47")
-TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "d99995143507d4ef9ecafa932e4d813d")
+TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "50fa364158b6b1b14cf478cfcce6e2e6")
 TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER", "+15758253891")
 TWILIO_WHATSAPP_NUMBER = os.environ.get("TWILIO_WHATSAPP_NUMBER", "whatsapp:+17372508034")
 TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID", "VA9999fae227b7078cf1401053ecdb889c")
@@ -60,6 +60,8 @@ TWILIO_VERIFY_SERVICE_SID = os.environ.get("TWILIO_VERIFY_SERVICE_SID", "VA9999f
 async def dispatch_phone_alert(recipient_name: str, phone: str, channel: str, message: str, alert_type: str = "SMS"):
     """
     Dispatches alert via Twilio Verify API (works on trial accounts).
+    Uses CustomFriendlyName='SENTINEL ALERT' so the SMS/WhatsApp message
+    displays 'SENTINEL ALERT' instead of the default service name.
     Falls back to audit log if Twilio is not configured.
     """
     try:

@@ -88,7 +88,7 @@ export default function ConfigTab({ scenario, onSimulate }) {
         op.phone,
         op.name,
         channel,
-        `🚨 [SENTINEL LIVE ${channel.toUpperCase()}] Real-time test dispatched to ${op.name} (${op.title}). Hardware telemetry nominal.`
+        `🚨 [SENTINEL LIVE ALERT] Real-time test dispatched to ${op.name}. Hardware telemetry nominal.`
       );
       if (res?.result?.provider === "fast2sms") {
         setConfigNotice(`✓ Fast2SMS carrier responded: ${typeof res.result.response === "string" ? res.result.response : "SMS Sent Successfully"}`);
@@ -184,7 +184,7 @@ export default function ConfigTab({ scenario, onSimulate }) {
                       {p.severity}
                     </span>
                     <span className="gold-btn px-5 py-2.5 rounded-xl text-xs font-black tracking-wider flex items-center gap-2">
-                      Inject Payload
+                      Trigger Incident
                       <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.5">
                         <path d="M3 8h10M8 3l5 5-5 5" />
                       </svg>
@@ -254,10 +254,7 @@ export default function ConfigTab({ scenario, onSimulate }) {
                     <tr key={op.id} className="hover:bg-slate-50/70 transition-colors">
                       <td className="p-3.5 font-bold text-slate-900 flex items-center gap-2.5">
                         <span className="text-base">{op.icon}</span>
-                        <div>
-                          <p className="font-black text-slate-900">{op.name}</p>
-                          <p className="text-[10px] text-slate-500 font-mono">{op.title}</p>
-                        </div>
+                        <p className="font-black text-slate-900">{op.name}</p>
                       </td>
                       <td className="p-3.5 font-mono">
                         {isOpsHead ? (
@@ -275,9 +272,6 @@ export default function ConfigTab({ scenario, onSimulate }) {
                         <div className="flex flex-col gap-1.5 font-mono text-[11px]">
                           <span className="text-slate-700 font-semibold">{op.contact_email}</span>
                           <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
-                            <span className="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold">
-                              💬 WhatsApp
-                            </span>
                             <span className="px-1.5 py-0.5 rounded bg-blue-50 text-blue-800 border border-blue-200 font-bold">
                               📱 SMS
                             </span>
@@ -289,23 +283,16 @@ export default function ConfigTab({ scenario, onSimulate }) {
                               }}
                               className="px-2 py-0.5 rounded bg-slate-200 hover:bg-slate-300 text-slate-800 text-[10px] font-extrabold cursor-pointer transition-colors"
                             >
-                              ✏️ Edit Phone
+                              Edit Phone
                             </button>
                           </div>
                           <div className="flex items-center gap-2 mt-1">
                             <button
                               disabled={loadingConfig}
                               onClick={() => handleSendTestDispatch(op, "sms")}
-                              className="px-2 py-0.5 rounded bg-blue-100 hover:bg-blue-600 hover:text-white text-blue-900 text-[10px] font-black transition-all cursor-pointer"
+                              className="px-2.5 py-1 rounded bg-blue-100 hover:bg-blue-600 hover:text-white text-blue-900 text-[10px] font-black transition-all cursor-pointer shadow-2xs"
                             >
-                              Send Test SMS
-                            </button>
-                            <button
-                              disabled={loadingConfig}
-                              onClick={() => handleSendTestDispatch(op, "whatsapp")}
-                              className="px-2 py-0.5 rounded bg-emerald-100 hover:bg-emerald-600 hover:text-white text-emerald-900 text-[10px] font-black transition-all cursor-pointer"
-                            >
-                              Send Test WhatsApp
+                              Send Alert
                             </button>
                           </div>
                         </div>
@@ -361,7 +348,7 @@ export default function ConfigTab({ scenario, onSimulate }) {
                 <span className="text-2xl p-2 bg-amber-50 rounded-2xl border border-amber-200">{editingOperator.icon}</span>
                 <div>
                   <h3 className="font-black text-slate-900 text-lg">Update Phone Number</h3>
-                  <p className="text-xs text-slate-500 font-medium">{editingOperator.name} · {editingOperator.title}</p>
+                  <p className="text-xs text-slate-500 font-medium">{editingOperator.name}</p>
                 </div>
               </div>
               <button

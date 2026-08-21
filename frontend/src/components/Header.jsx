@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { IconBell } from "../icons";
 
 function Clock() {
   const [now, setNow] = useState(new Date());
@@ -72,21 +71,8 @@ export default function Header({ scenario, onSwitchScenario }) {
 
         <Clock />
 
-        <div className="w-px h-9 bg-gradient-to-b from-transparent via-border to-transparent" />
-
         {/* Action icons */}
         <div className="flex items-center gap-2">
-          <button
-            className="relative flex items-center justify-center w-9 h-9 rounded-xl border border-white/80 bg-white/60 hover:bg-white/90 transition-all shadow-sm text-fg-muted hover:text-accent"
-            aria-label="Notifications"
-          >
-            <IconBell width={15} height={15} />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-accent border-2 border-white" />
-          </button>
-          <button
-            className="flex items-center justify-center w-9 h-9 rounded-xl border border-white/80 bg-white/60 hover:bg-white/90 transition-all shadow-sm text-fg-muted hover:text-fg font-bold text-[13px]"
-            aria-label="Help"
-          >?</button>
           <button
             className="flex items-center justify-center w-9 h-9 rounded-xl border border-white/80 bg-gradient-to-br from-accent/10 to-accent-light/10 hover:from-accent/20 hover:to-accent-light/20 transition-all shadow-sm"
             aria-label="Profile"

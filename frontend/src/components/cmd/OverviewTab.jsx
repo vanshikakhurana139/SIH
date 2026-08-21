@@ -66,8 +66,8 @@ function ActiveIncidentHero({ incident, onManualEscalate }) {
                 <span>🚨</span> ESCALATED TO OPERATIONS HEAD
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
-                <span>👤</span> ASSIGNED TO SHIFT OPERATOR
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300">
+                <span>📱</span> ALERT SENT TO SHIFT OPERATOR'S PHONE
               </span>
             )}
           </div>

@@ -115,20 +115,8 @@ export default function CmdHeader({ scenario, onSwitchScenario, onOpenOperator, 
 
         <Clock />
 
-        <div className="hidden sm:block w-px h-8 bg-slate-200" />
-
         {/* Actions */}
         <div className="flex items-center gap-2">
-          <button className="relative flex items-center justify-center w-9 h-9 rounded-2xl border border-slate-200/80 bg-slate-50 hover:bg-white transition-all text-slate-600 hover:text-slate-900 shadow-2xs">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" />
-              <path d="M10 20a2 2 0 0 0 4 0" />
-            </svg>
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-amber-500 border border-white" />
-          </button>
-          <button className="flex items-center justify-center w-9 h-9 rounded-2xl border border-slate-200/80 bg-slate-50 hover:bg-white transition-all text-slate-600 hover:text-slate-900 text-xs font-bold shadow-2xs">
-            ?
-          </button>
           <button
             onClick={onOpenOperator}
             className="flex items-center gap-2.5 px-3.5 py-2 rounded-2xl border border-amber-300/80 bg-amber-50/60 hover:bg-amber-100/80 transition-all shadow-2xs cursor-pointer group"

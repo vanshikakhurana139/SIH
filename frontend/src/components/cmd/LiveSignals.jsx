@@ -28,11 +28,6 @@ export default function LiveSignals({ incident, scenario = "powerplant" }) {
             Continuous real-time sensor streams
           </p>
         </div>
-
-        <div className="flex items-center gap-2 shrink-0 bg-emerald-50 border border-emerald-300 px-3 py-1.5 rounded-xl">
-          <span className="live-dot w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#15803D", display: "inline-block" }} />
-          <span className="text-[11px] font-black text-emerald-900 tracking-wider">1,000 HZ</span>
-        </div>
       </div>
 
       {/* Sensor List */}

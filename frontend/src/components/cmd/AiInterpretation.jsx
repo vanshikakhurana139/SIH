@@ -2,7 +2,6 @@ export default function AiInterpretation({ incident }) {
   if (!incident) {
     return (
       <div className="ivory-card p-8 rounded-3xl border border-slate-200/80 shadow-sm bg-white/90 flex flex-col items-center justify-center text-center min-h-[220px]">
-        <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-3 text-2xl">🧠</div>
         <p className="text-base font-bold text-slate-800">No Active Incident</p>
         <p className="text-xs text-slate-500 mt-1 max-w-xs">Simulate a sensor reading from the top control panel to trigger live AI diagnosis.</p>
       </div>

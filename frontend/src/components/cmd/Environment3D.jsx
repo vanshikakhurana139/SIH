@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import powerPlantImg from "../../assets/power_plant_hall.png";
 
 const POWERPLANT_NODES = [
   { id: "turbine_temp",        label: "Turbine 03",  x: 50,  y: 38, r: 20, symbol: "⚙" },
@@ -19,7 +20,7 @@ const HOSPITAL_NODES = [
 ];
 
 const PHOTO = {
-  powerplant: "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=900&q=75&fit=crop",
+  powerplant: powerPlantImg,
   hospital:   "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=900&q=75&fit=crop",
 };
 

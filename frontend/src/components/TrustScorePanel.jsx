@@ -92,18 +92,6 @@ export default function TrustScorePanel({ trustScores, onEnableAutopilot }) {
             </div>
           ))}
       </div>
-
-      {/* Trust Statistics Summary */}
-      <div className="grid grid-cols-2 gap-3.5 mt-5 pt-4 border-t border-slate-200">
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-          <p className="text-xs font-black uppercase tracking-wider text-slate-500">Model Reliability</p>
-          <p className="text-base font-black text-slate-900 mt-1">99.4% Verified</p>
-        </div>
-        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
-          <p className="text-xs font-black uppercase tracking-wider text-slate-500">Human Override Rate</p>
-          <p className="text-base font-black text-slate-900 mt-1">1.8% (Minimal)</p>
-        </div>
-      </div>
     </div>
   );
 }

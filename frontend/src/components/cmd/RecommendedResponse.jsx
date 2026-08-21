@@ -52,20 +52,6 @@ export default function RecommendedResponse({ incident, onApprove, onReject, onM
           </p>
         </div>
 
-        {/* Impact metrics */}
-        <div className="grid grid-cols-3 gap-3 mb-5">
-          {[
-            { label: "Risk Reduction", value: "82%", color: "#2D7A5A" },
-            { label: "Recovery Window", value: "12–18 min", color: "#475569" },
-            { label: "Exposure Avoided", value: "$8,400", color: "#2D7A5A" },
-          ].map(({ label, value, color }) => (
-            <div key={label} className="text-center rounded-2xl py-3 px-2 bg-slate-50/80 border border-slate-200/70">
-              <p className="text-[10px] uppercase tracking-wider font-extrabold text-slate-400 mb-1">{label}</p>
-              <p className="text-sm font-bold font-mono" style={{ color }}>{value}</p>
-            </div>
-          ))}
-        </div>
-
         {/* Crystal Ball */}
         {incident.crystal_ball && (
           <div className="space-y-2 mb-2 p-4 rounded-2xl bg-slate-50/60 border border-slate-200/60">
