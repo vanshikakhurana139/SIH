@@ -20,7 +20,7 @@ export default function Hero({ onEnter }) {
             <div className="hero-bg" style={{ backgroundImage: `url(${heroImage})` }} />
             <div className="hero-overlay" />
             <div className="hero-content">
-                <p className="hero-eyebrow">AI Incident Orchestration</p>
+                <p className="hero-eyebrow">Autonomous Incident Orchestration</p>
                 <h1 className="hero-title">
                     From signal<br />to decision<br />to action.
                 </h1>

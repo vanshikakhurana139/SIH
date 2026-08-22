@@ -23,7 +23,7 @@ export default function Header({ scenario, onSwitchScenario }) {
       <div className="flex items-center gap-6">
         <div>
           <h1 className="font-display text-[13px] font-extrabold text-fg tracking-widest leading-tight uppercase">
-            AI Incident Orchestration
+            Autonomous Incident Orchestration
           </h1>
           <p className="text-[9.5px] uppercase tracking-[0.18em] font-bold mt-0.5"
              style={{ background: "linear-gradient(90deg,#3B5BDB,#748FFC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>

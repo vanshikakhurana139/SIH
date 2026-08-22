@@ -26,7 +26,7 @@ export default function LandingPage({ stats, onEnter, onSelectEnvironment }) {
             <span className="text-[12px] font-bold uppercase tracking-widest text-fg-subtle">Sentinel</span>
           </div>
           <p className="text-[11px] text-fg-subtle font-mono">
-            AI Incident Orchestration · v0.4 · Backend: FastAPI + SQLite
+            Autonomous Incident Orchestration · v0.4 · Backend: FastAPI + SQLite
           </p>
         </div>
       </footer>

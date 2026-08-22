@@ -13,7 +13,7 @@ export default function NavBar({ onEnterCommandCenter }) {
             style={{ boxShadow: "0 3px 12px rgba(184,150,62,0.35)" }}
           />
           <div className="leading-tight">
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-fg">AI Incident Orchestration</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-fg">Autonomous Incident Orchestration</p>
           </div>
         </div>
 

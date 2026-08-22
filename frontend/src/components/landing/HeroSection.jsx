@@ -206,7 +206,7 @@ export default function HeroSection({ stats, onEnterCommandCenter }) {
             From Sensor Signal to Autonomous Action
           </span>
           <h1 className="font-sans text-5xl sm:text-6xl font-black text-slate-900 leading-[1.08] tracking-tight mt-4">
-            Autonomous AI platform that turns signals into <span className="text-gradient-gold">flawless execution.</span>
+            Autonomous platform that turns signals into <span className="text-gradient-gold">flawless execution.</span>
           </h1>
           <p className="text-base sm:text-lg font-bold text-slate-700 leading-relaxed mt-6 mb-8 max-w-xl">
             Detect sensor anomalies. Understand diagnostic context. Recommend deterministic action. Verify system recovery.

@@ -35,7 +35,7 @@ export default function CmdHeader({ scenario, onSwitchScenario, onOpenOperator, 
             className="w-10 h-10 rounded-2xl shrink-0 shadow-sm object-contain bg-white"
           />
           <div>
-            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-900 leading-tight">AI Incident Orchestration</p>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-slate-900 leading-tight">Autonomous Incident Orchestration</p>
             <p className="text-[11px] uppercase tracking-[0.14em] font-extrabold text-amber-700">Command Center</p>
           </div>
         </div>
