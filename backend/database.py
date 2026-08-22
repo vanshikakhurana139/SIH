@@ -84,10 +84,10 @@ def init_db():
 
     # Seed default shift operators & operations head with phone numbers
     default_operators = [
-        ("op-1", "Marcus Vance", "shift_operator", 1, "marcus.vance@sentinel-grid.org", "+91 9729280478", "9:00 AM – 5:00 PM", "Lead Systems Engineer", "🌅"),
-        ("op-2", "Elena Rostova", "shift_operator", 0, "elena.rostova@sentinel-grid.org", "+1 (555) 345-6789", "5:00 PM – 1:00 AM", "Critical Infrastructure Specialist", "🌆"),
-        ("op-3", "Devon Chen", "shift_operator", 0, "devon.chen@sentinel-grid.org", "+1 (555) 456-7890", "1:00 AM – 9:00 AM", "Safety & Safeguards Overseer", "🌌"),
-        ("head-1", "Dr. Sarah Sterling", "ops_head", 1, "sarah.sterling@sentinel-grid.org", "+91 9729280478", "24/7 Operations Oversight", "Head of Mission Operations", "🎖️"),
+        ("op-1", "Marcus Vance", "shift_operator", 1, "marcus.vance@sentinel-grid.org", "+919729280478", "9:00 AM – 5:00 PM", "Lead Systems Engineer", "🌅"),
+        ("op-2", "Elena Rostova", "shift_operator", 0, "elena.rostova@sentinel-grid.org", "+919729280478", "5:00 PM – 1:00 AM", "Critical Infrastructure Specialist", "🌆"),
+        ("op-3", "Devon Chen", "shift_operator", 0, "devon.chen@sentinel-grid.org", "+919729280478", "1:00 AM – 9:00 AM", "Safety & Safeguards Overseer", "🌌"),
+        ("head-1", "Dr. Sarah Sterling", "ops_head", 1, "sarah.sterling@sentinel-grid.org", "+919729280478", "24/7 Operations Oversight", "Head of Mission Operations", "🎖️"),
     ]
     cur.executemany(
         "INSERT OR REPLACE INTO operators (id, name, role, on_duty, contact_email, phone, shift_time, title, icon) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",

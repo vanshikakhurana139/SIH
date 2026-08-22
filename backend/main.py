@@ -67,12 +67,16 @@ async def dispatch_phone_alert(recipient_name: str, phone: str, channel: str, me
     try:
         if TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN and TWILIO_VERIFY_SERVICE_SID:
             import base64
+            import re
             auth_str = f"{TWILIO_ACCOUNT_SID}:{TWILIO_AUTH_TOKEN}"
             b64_auth = base64.b64encode(auth_str.encode()).decode()
 
-            clean_phone = phone.strip()
-            if not clean_phone.startswith("+"):
-                clean_phone = "+" + clean_phone
+            # Clean phone to strict E.164: + followed by digits only
+            digits_only = re.sub(r"\D", "", phone or "")
+            if not digits_only:
+                print(f"[TWILIO DISPATCH ERROR] Empty phone number provided for {recipient_name}")
+                return {"success": False, "error": "Empty phone number"}
+            clean_phone = f"+{digits_only}"
 
             # Use Twilio Verify API - works reliably on trial accounts
             # Supports both "sms" and "whatsapp" channels
@@ -94,6 +98,16 @@ async def dispatch_phone_alert(recipient_name: str, phone: str, channel: str, me
         clean_msg = message[:60].encode("ascii", "replace").decode("ascii")
         print(f"[SENTINEL {alert_type.upper()} GATEWAY] Dispatched to {recipient_name} at {phone}: {clean_msg}...")
         return {"success": True, "provider": "simulator", "phone": phone}
+    except urllib.error.HTTPError as e:
+        err_body = ""
+        try:
+            err_body = e.read().decode("utf-8")
+            err_json = json.loads(err_body)
+            err_msg = f"HTTP {e.code} (Twilio Code {err_json.get('code')}): {err_json.get('message')}"
+        except Exception:
+            err_msg = f"HTTP {e.code}: {err_body or str(e)}"
+        print(f"[TWILIO DISPATCH ERROR] {err_msg}")
+        return {"success": False, "error": err_msg}
     except Exception as e:
         err_msg = str(e).encode("ascii", "replace").decode("ascii")
         print(f"[TWILIO DISPATCH ERROR] {err_msg}")
